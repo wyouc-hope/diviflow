@@ -1,0 +1,102 @@
+// Prisma schema - 攒股收息 App 数据模型
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 用户表
+model User {
+  id            String       @id @default(cuid())
+  name          String
+  avatarUrl     String?
+  memberType    String       @default("free") // free | monthly | yearly
+  memberExpiry  DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  stocks        Stock[]
+  dividends     Dividend[]
+  goals         Goal[]
+  milestones    Milestone[]
+}
+
+// 持仓表
+model Stock {
+  id            String       @id @default(cuid())
+  userId        String
+  name          String       // 股票名称，如「工商银行」
+  code          String       // 股票代码，如「601398」
+  market        String       @default("A") // A 股
+  shares        Int          // 持股数量
+  costPrice     Float?       // 持仓成本价
+  currentPrice  Float?       // 最新价格
+  dividendYield Float?       // 股息率
+  color         String       @default("#000000")
+  shortName     String       // 简称，如「工行」
+  purchaseDate  DateTime?    // 买入日期
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  user          User         @relation(fields: [userId], references: [id])
+  dividends     Dividend[]
+
+  @@index([userId])
+  @@unique([userId, code])
+}
+
+// 分红记录表
+model Dividend {
+  id            String       @id @default(cuid())
+  userId        String
+  stockId       String
+  perShare      Float        // 每股分红金额
+  amount        Float        // 到账总金额
+  date          DateTime     // 预计到账日期
+  status        String       @default("pending") // pending(预案) | confirmed(已确认) | received(已到账)
+  recordDate    DateTime?    // 股权登记日
+  exDate        DateTime?    // 除息日
+  year          Int          // 分红所属年度
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  user          User         @relation(fields: [userId], references: [id])
+  stock         Stock        @relation(fields: [stockId], references: [id])
+
+  @@index([userId])
+  @@index([stockId])
+  @@index([date])
+}
+
+// 目标表
+model Goal {
+  id              String     @id @default(cuid())
+  userId          String
+  targetMonthly   Float      // 月度被动收入目标金额
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  user            User       @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+// 里程碑表
+model Milestone {
+  id            String       @id @default(cuid())
+  userId        String
+  type          String       // first_dividend | monthly_1000 | goal_25 | goal_50 | goal_75 | hold_1year | goal_100
+  title         String
+  description   String?
+  achievedAt    DateTime?
+  status        String       @default("locked") // locked | next | done
+
+  user          User         @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}

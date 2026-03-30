@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(pandoc /Users/chenzhicheng/Documents/claude/stock-app/攒股收息App_PRD_V1.docx -o /tmp/prd_output.md)",
+      "Bash(npx prisma:*)",
+      "Bash(npm install:*)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx tsx prisma/seed.ts)",
+      "Bash(npx tsx:*)"
+    ]
+  }
+}

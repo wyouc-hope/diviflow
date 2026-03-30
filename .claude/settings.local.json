@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/chenzhicheng/**)",
+      "Bash(xargs cat)",
+      "Bash(mkdir -p GoldStack/Models GoldStack/ViewModels GoldStack/Views GoldStack/Services GoldStack/Utils)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

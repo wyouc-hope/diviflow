@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>攒股收息 App · 高保真原型</title>
+<style>
+  /* ── Reset & Base ─────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+    background: #0D0D14;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 24px 60px;
+  }
+
+  /* ── Design tokens ────────────────────────────────── */
+  :root {
+    --bg: #111218;
+    --bg2: #1A1B24;
+    --bg3: #22242F;
+    --card: #1E2030;
+    --card2: #262840;
+    --border: rgba(255,255,255,0.07);
+    --gold: #F5C842;
+    --gold2: #E8A020;
+    --gold-dim: rgba(245,200,66,0.15);
+    --gold-text: #FFD86E;
+    --green: #34D399;
+    --green-dim: rgba(52,211,153,0.15);
+    --red: #F87171;
+    --red-dim: rgba(248,113,113,0.15);
+    --blue: #60A5FA;
+    --blue-dim: rgba(96,165,250,0.15);
+    --t1: #F1F2F6;
+    --t2: #9BA3B5;
+    --t3: #5C6478;
+    --orange: #FB923C;
+    --orange-dim: rgba(251,146,60,0.15);
+  }
+
+  /* ── Outer wrapper ────────────────────────────────── */
+  .page-header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .page-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .page-header p { font-size: 13px; color: var(--t3); }
+
+  /* ── Screen tabs ──────────────────────────────────── */
+  .screen-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .screen-tab {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--t2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .2s;
+    user-select: none;
+  }
+  .screen-tab.active {
+    background: var(--gold);
+    color: #111;
+    border-color: var(--gold);
+    font-weight: 600;
+  }
+
+  /* ── Phone shell ──────────────────────────────────── */
+  .phone-wrap {
+    position: relative;
+    width: 375px;
+  }
+  .phone-shell {
+    background: #0A0A12;
+    border-radius: 48px;
+    border: 2px solid rgba(255,255,255,0.12);
+    padding: 16px 10px 20px;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,.5),
+      0 40px 80px rgba(0,0,0,.7),
+      inset 0 1px 0 rgba(255,255,255,.08);
+    position: relative;
+  }
+  .phone-shell::before {
+    content: '';
+    position: absolute;
+    top: 18px; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 30px;
+    background: #0A0A12;
+    border-radius: 0 0 20px 20px;
+    z-index: 10;
+    border: 2px solid rgba(255,255,255,0.10);
+    border-top: none;
+  }
+  .phone-inner {
+    border-radius: 36px;
+    overflow: hidden;
+    background: var(--bg);
+    height: 780px;
+    position: relative;
+  }
+
+  /* ── Status bar ───────────────────────────────────── */
+  .status-bar {
+    height: 44px;
+    background: var(--bg);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 24px 8px;
+    font-size: 12px;
+    color: var(--t1);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .status-icons { display: flex; gap: 5px; align-items: center; }
+  .status-icons svg { width: 16px; height: 16px; }
+
+  /* ── Screen container ─────────────────────────────── */
+  .screen {
+    display: none;
+    flex-direction: column;
+    height: 736px;
+    overflow: hidden;
+  }
+  .screen.active { display: flex; }
+
+  .screen-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 80px;
+    scrollbar-width: none;
+  }
+  .screen-scroll::-webkit-scrollbar { display: none; }
+
+  /* ── Bottom nav ───────────────────────────────────── */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    height: 80px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 10px 16px;
+    z-index: 100;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    opacity: 0.45;
+    transition: opacity .2s;
+    flex: 1;
+  }
+  .nav-item.active { opacity: 1; }
+  .nav-item svg { width: 22px; height: 22px; }
+  .nav-item span { font-size: 10px; color: var(--t2); }
+  .nav-item.active span { color: var(--gold); }
+  .nav-icon { color: var(--t2); }
+  .nav-item.active .nav-icon { color: var(--gold); }
+
+  /* ── Shared components ────────────────────────────── */
+  .app-header {
+    padding: 56px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg);
+  }
+  .app-header h2 { font-size: 20px; font-weight: 700; color: var(--t1); }
+  .app-header .subtitle { font-size: 12px; color: var(--t3); margin-top: 2px; }
+
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .icon-btn svg { width: 18px; height: 18px; color: var(--t2); }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--t3);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 16px 20px 8px;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    margin: 0 16px 12px;
+    overflow: hidden;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .chip.gold { background: var(--gold-dim); color: var(--gold-text); }
+  .chip.green { background: var(--green-dim); color: var(--green); }
+  .chip.blue { background: var(--blue-dim); color: var(--blue); }
+  .chip.orange { background: var(--orange-dim); color: var(--orange); }
+  .chip.red { background: var(--red-dim); color: var(--red); }
+
+  /* ──────────────────────────────────────────────────── */
+  /* SCREEN 1: 首页                                       */
+  /* ──────────────────────────────────────────────────── */
+  .home-top {
+    padding: 52px 20px 16px;
+    background: linear-gradient(180deg, #15162A 0%, var(--bg) 100%);
+  }
+  .home-greeting { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .greeting-text { font-size: 16px; color: var(--t1); font-weight: 500; }
+  .greeting-sub { font-size: 12px; color: var(--t3); margin-top: 2px; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold2), #c47d10);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: #111;
+  }
+
+  /* Progress ring card */
+  .progress-card {
+    background: linear-gradient(145deg, #1E2040, #151628);
+    border: 1px solid rgba(245,200,66,0.2);
+    border-radius: 24px;
+    margin: 0 16px 16px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-card::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245,200,66,0.12) 0%, transparent 70%);
+  }
+  .progress-card-inner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .ring-wrap { position: relative; flex-shrink: 0; }
+  .ring-wrap svg { width: 120px; height: 120px; transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 10; }
+  .ring-fill {
+    fill: none;
+    stroke: url(#goldGrad);
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 302;
+    stroke-dashoffset: 115; /* 62% filled = 302 * 0.38 ≈ 115 */
+    transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);
+  }
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .ring-pct { font-size: 26px; font-weight: 800; color: var(--gold); }
+  .ring-label { font-size: 10px; color: var(--t3); }
+
+  .progress-detail { flex: 1; }
+  .progress-title { font-size: 13px; color: var(--t3); margin-bottom: 6px; }
+  .progress-current { font-size: 28px; font-weight: 800; color: var(--t1); line-height: 1; }
+  .progress-unit { font-size: 13px; color: var(--t2); margin-left: 2px; font-weight: 400; }
+  .progress-target { font-size: 12px; color: var(--t3); margin-top: 4px; }
+  .progress-eta {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: rgba(245,200,66,0.08);
+    border-radius: 10px;
+    border: 1px solid rgba(245,200,66,0.15);
+  }
+  .progress-eta span { font-size: 11px; color: var(--gold-text); }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 16px 12px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .stat-label { font-size: 11px; color: var(--t3); margin-bottom: 4px; }
+  .stat-value { font-size: 20px; font-weight: 700; color: var(--t1); }
+  .stat-sub { font-size: 10px; color: var(--t3); margin-top: 2px; }
+
+  /* Dividend items */
+  .div-item {
+    display: flex;
+    align-items: center;
+    padding: 13px 16px;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .div-item:last-child { border-bottom: none; }
+  .stock-dot {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #111; flex-shrink: 0;
+  }
+  .div-info { flex: 1; }
+  .div-name { font-size: 14px; font-weight: 600; color: var(--t1); }
+  .div-date { font-size: 11px; color: var(--t3); margin-top: 2px; }
+  .div-amount { text-align: right; }
+  .div-amt-main { font-size: 16px; font-weight: 700; color: var(--gold-text); }
+  .div-amt-sub { font-size: 10px; color: var(--t3); }
+
+  /* ──────────────────────────────────────────────────── */
+  /* SCREEN 2: 股息日历                                   */
+  /* ──────────────────────────────────────────────────── */
+  .cal-header {
+    padding: 52px 20px 16px;
+    background: var(--bg);
+  }
+  .cal-month-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .cal-month { font-size: 20px; font-weight: 700; color: var(--t1); }
+  .cal-nav-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .cal-nav-btn svg { width: 16px; height: 16px; color: var(--t2); }
+
+  .cal-summary {
+    display: flex; gap: 10px; margin-bottom: 16px;
+  }
+  .cal-sum-item {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+  .cal-sum-label { font-size: 10px; color: var(--t3); margin-bottom: 3px; }
+  .cal-sum-value { font-size: 16px; font-weight: 700; color: var(--t1); }
+
+  .cal-grid { padding: 0 16px; }
+  .cal-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .cal-weekday { font-size: 11px; color: var(--t3); padding: 4px 0; }
+  .cal-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--t2);
+    position: relative;
+    cursor: pointer;
+  }
+  .cal-day.today { background: var(--bg3); color: var(--t1); font-weight: 600; }
+  .cal-day.has-div { color: var(--t1); }
+  .cal-day.gold-div { background: rgba(245,200,66,0.12); }
+  .cal-day.green-div { background: rgba(52,211,153,0.1); }
+  .cal-day.blue-div { background: rgba(96,165,250,0.1); }
+  .cal-day .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    position: absolute; bottom: 4px;
+  }
+  .cal-day.gold-div .dot { background: var(--gold); }
+  .cal-day.green-div .dot { background: var(--green); }
+  .cal-day.blue-div .dot { background: var(--blue); }
+  .cal-day.dim { color: var(--t3); }
+  .cal-day.selected { border: 2px solid var(--gold); }
+
+  .cal-legend {
+    display: flex; gap: 12px; padding: 10px 16px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--t3); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Dividend detail list */
+  .div-detail {
+    margin: 0 16px 10px;
+    background: var(--card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .div-detail-header {
+    padding: 12px 16px;
+    background: var(--card2);
+    font-size: 12px; font-weight: 600; color: var(--t3);
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between;
+  }
+
+  /* ──────────────────────────────────────────────────── */
+  /* SCREEN 3: 持仓管理                                   */
+  /* ──────────────────────────────────────────────────── */
+  .portfolio-header {
+    padding: 52px 20px 16px;
+    background: linear-gradient(180deg, #15162A 0%, var(--bg) 100%);
+  }
+  .portfolio-total { margin-top: 12px; }
+  .portfolio-total-label { font-size: 12px; color: var(--t3); margin-bottom: 4px; }
+  .portfolio-total-val { font-size: 32px; font-weight: 800; color: var(--t1); }
+  .portfolio-total-sub { font-size: 12px; color: var(--t3); margin-top: 4px; }
+  .portfolio-annual {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: var(--gold-dim);
+    border-radius: 20px;
+  }
+  .portfolio-annual span { font-size: 12px; color: var(--gold-text); font-weight: 600; }
+
+  .import-btns {
+    display: flex; gap: 8px;
+    padding: 0 16px 12px;
+  }
+  .import-btn {
+    flex: 1;
+    background: var(--card);
+    border: 1px dashed rgba(245,200,66,0.3);
+    border-radius: 12px;
+    padding: 10px 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .import-btn:hover { background: var(--gold-dim); }
+  .import-btn svg { width: 20px; height: 20px; color: var(--gold); }
+  .import-btn span { font-size: 11px; color: var(--t2); }
+
+  .stock-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin: 0 16px 10px;
+    overflow: hidden;
+  }
+  .stock-card-top {
+    display: flex; align-items: center;
+    padding: 14px 16px 10px;
+    gap: 12px;
+  }
+  .stock-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; flex-shrink: 0;
+  }
+  .stock-info { flex: 1; }
+  .stock-name { font-size: 15px; font-weight: 600; color: var(--t1); }
+  .stock-code { font-size: 11px; color: var(--t3); margin-top: 1px; }
+  .stock-right { text-align: right; }
+  .stock-price { font-size: 15px; font-weight: 700; color: var(--t1); }
+  .stock-change { font-size: 11px; margin-top: 2px; }
+  .pos { color: var(--red); }
+  .neg { color: var(--green); }
+
+  .stock-card-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-top: 1px solid var(--border);
+    background: rgba(0,0,0,0.15);
+  }
+  .stock-metric {
+    padding: 10px 12px;
+    border-right: 1px solid var(--border);
+  }
+  .stock-metric:last-child { border-right: none; }
+  .stock-metric-label { font-size: 10px; color: var(--t3); margin-bottom: 3px; }
+  .stock-metric-val { font-size: 13px; font-weight: 600; color: var(--t1); }
+  .stock-metric-val.gold { color: var(--gold-text); }
+
+  /* ──────────────────────────────────────────────────── */
+  /* SCREEN 4: 目标 & 里程碑                              */
+  /* ──────────────────────────────────────────────────── */
+  .goal-hero {
+    padding: 52px 20px 20px;
+    background: linear-gradient(180deg, #15162A 0%, var(--bg) 100%);
+  }
+  .goal-big-ring { display: flex; justify-content: center; margin: 8px 0 16px; }
+  .goal-big-ring svg { width: 160px; height: 160px; transform: rotate(-90deg); }
+  .goal-ring-center {
+    position: absolute; width: 160px; height: 160px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+  }
+  .goal-ring-wrap { position: relative; display: inline-block; margin: 8px 0 16px; }
+  .goal-pct { font-size: 38px; font-weight: 800; color: var(--gold); }
+  .goal-pct-label { font-size: 11px; color: var(--t3); }
+
+  .goal-numbers {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 16px;
+  }
+  .goal-num-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .goal-num-label { font-size: 11px; color: var(--t3); margin-bottom: 5px; }
+  .goal-num-val { font-size: 22px; font-weight: 700; color: var(--t1); }
+  .goal-num-unit { font-size: 11px; color: var(--t2); }
+
+  .goal-edit-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%;
+    padding: 13px;
+    background: var(--gold-dim);
+    border: 1px solid rgba(245,200,66,0.3);
+    border-radius: 14px;
+    font-size: 14px; font-weight: 600; color: var(--gold-text);
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+
+  /* Milestone timeline */
+  .milestone-list { padding: 0 16px 12px; }
+  .milestone-item {
+    display: flex; gap: 12px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .milestone-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 19px; top: 40px;
+    width: 2px; height: calc(100% + 12px);
+    background: var(--border);
+  }
+  .milestone-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 18px;
+    border: 2px solid transparent;
+    position: relative; z-index: 1;
+  }
+  .milestone-icon.done { background: var(--gold-dim); border-color: var(--gold); }
+  .milestone-icon.pending { background: var(--bg3); border-color: var(--border); }
+  .milestone-icon.next { background: var(--orange-dim); border-color: var(--orange); }
+  .milestone-body { flex: 1; padding-top: 4px; }
+  .milestone-title { font-size: 14px; font-weight: 600; color: var(--t1); }
+  .milestone-sub { font-size: 11px; color: var(--t3); margin-top: 2px; }
+  .milestone-date { font-size: 10px; color: var(--t3); margin-top: 4px; }
+  .milestone-badge {
+    padding: 3px 8px; border-radius: 20px;
+    font-size: 10px; font-weight: 600;
+    align-self: flex-start; margin-top: 4px;
+  }
+  .milestone-badge.done { background: var(--gold-dim); color: var(--gold-text); }
+  .milestone-badge.next { background: var(--orange-dim); color: var(--orange); }
+  .milestone-badge.lock { background: var(--bg3); color: var(--t3); }
+
+  /* ──────────────────────────────────────────────────── */
+  /* SCREEN 5: 账户设置                                   */
+  /* ──────────────────────────────────────────────────── */
+  .profile-hero {
+    padding: 52px 20px 20px;
+    background: linear-gradient(180deg, #15162A 0%, var(--bg) 100%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .profile-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold2), #c47d10);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 800; color: #111;
+    flex-shrink: 0;
+    border: 2px solid var(--gold);
+  }
+  .profile-info {}
+  .profile-name { font-size: 18px; font-weight: 700; color: var(--t1); }
+  .profile-id { font-size: 12px; color: var(--t3); margin-top: 2px; }
+  .profile-member-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-top: 6px;
+    padding: 4px 10px;
+    background: var(--gold-dim);
+    border-radius: 20px;
+    font-size: 11px; font-weight: 600; color: var(--gold-text);
+  }
+
+  .member-card {
+    background: linear-gradient(135deg, #1E2040, #2A1A10);
+    border: 1px solid rgba(245,200,66,0.3);
+    border-radius: 16px;
+    margin: 0 16px 16px;
+    padding: 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .member-card-left {}
+  .member-label { font-size: 12px; color: var(--gold); font-weight: 600; }
+  .member-expire { font-size: 11px; color: var(--t3); margin-top: 2px; }
+  .member-perks { font-size: 11px; color: var(--t2); margin-top: 6px; }
+  .renew-btn {
+    padding: 8px 16px;
+    background: var(--gold);
+    border-radius: 20px;
+    font-size: 13px; font-weight: 700; color: #111;
+    cursor: pointer;
+  }
+
+  .settings-group {
+    margin: 0 16px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .settings-group-title {
+    padding: 12px 16px 6px;
+    font-size: 11px; color: var(--t3); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+  }
+  .setting-item {
+    display: flex; align-items: center;
+    padding: 14px 16px;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .setting-item:last-child { border-bottom: none; }
+  .setting-icon {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .setting-icon svg { width: 17px; height: 17px; }
+  .setting-text { flex: 1; }
+  .setting-name { font-size: 14px; color: var(--t1); }
+  .setting-desc { font-size: 11px; color: var(--t3); margin-top: 1px; }
+  .setting-right { display: flex; align-items: center; gap: 6px; color: var(--t3); font-size: 12px; }
+  .setting-right svg { width: 14px; height: 14px; }
+
+  .toggle {
+    width: 42px; height: 24px; border-radius: 12px; background: var(--green);
+    position: relative; flex-shrink: 0;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px; border-radius: 50%; background: white;
+    top: 2px; right: 2px;
+    transition: right .2s;
+  }
+  .toggle.off { background: var(--bg3); }
+  .toggle.off::after { right: 20px; }
+
+  /* ── Animations ────────────────────────────────────── */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .screen.active { animation: fadeIn .3s ease; }
+
+  /* ── Gradient defs ─────────────────────────────────── */
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>攒股收息 · 高保真原型</h1>
+  <p>点击下方标签切换页面 · 深色金色主题</p>
+</div>
+
+<div class="screen-tabs">
+  <div class="screen-tab active" onclick="switchScreen('home', this)">首页</div>
+  <div class="screen-tab" onclick="switchScreen('calendar', this)">股息日历</div>
+  <div class="screen-tab" onclick="switchScreen('portfolio', this)">持仓管理</div>
+  <div class="screen-tab" onclick="switchScreen('goal', this)">目标 & 里程碑</div>
+  <div class="screen-tab" onclick="switchScreen('profile', this)">账户设置</div>
+</div>
+
+<div class="phone-wrap">
+  <div class="phone-shell">
+    <div class="phone-inner">
+
+      <!-- SVG defs -->
+      <svg width="0" height="0" style="position:absolute">
+        <defs>
+          <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#F5C842"/>
+            <stop offset="100%" style="stop-color:#E8A020"/>
+          </linearGradient>
+          <linearGradient id="goldGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#F5C842"/>
+            <stop offset="100%" style="stop-color:#E8A020"/>
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+        </div>
+      </div>
+
+      <!-- ============ SCREEN 1: HOME ============ -->
+      <div class="screen active" id="screen-home">
+        <div class="screen-scroll">
+
+          <div class="home-top">
+            <div class="home-greeting">
+              <div>
+                <div class="greeting-text">早上好，Ying 👋</div>
+                <div class="greeting-sub">你的被动收入正在稳稳积累</div>
+              </div>
+              <div class="avatar">Y</div>
+            </div>
+          </div>
+
+          <!-- Progress Ring Card -->
+          <div class="progress-card">
+            <div class="progress-card-inner">
+              <div class="ring-wrap">
+                <svg viewBox="0 0 120 120">
+                  <circle class="ring-track" cx="60" cy="60" r="48"/>
+                  <circle class="ring-fill" cx="60" cy="60" r="48"/>
+                </svg>
+                <div class="ring-center">
+                  <div class="ring-pct">62%</div>
+                  <div class="ring-label">目标进度</div>
+                </div>
+              </div>
+              <div class="progress-detail">
+                <div class="progress-title">月均收息</div>
+                <div class="progress-current">3,100<span class="progress-unit">元/月</span></div>
+                <div class="progress-target">目标 5,000 元/月</div>
+                <div class="progress-eta">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#F5C842"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.28 2.85-.54.9z"/></svg>
+                  <span>预计 2027年8月 达成 · 还差 1,900元</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Row -->
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-label">年化分红</div>
+              <div class="stat-value">37,200</div>
+              <div class="stat-sub">元 / 年</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">持仓市值</div>
+              <div class="stat-value">62.4万</div>
+              <div class="stat-sub">综合股息率 5.96%</div>
+            </div>
+          </div>
+
+          <!-- Upcoming Dividends -->
+          <div class="section-title">本月即将到账</div>
+          <div class="card">
+            <div class="div-item">
+              <div class="stock-dot" style="background:linear-gradient(135deg,#F5C842,#E8A020)">工行</div>
+              <div class="div-info">
+                <div class="div-name">工商银行</div>
+                <div class="div-date">4月3日到账 · <span class="chip gold">已确认</span></div>
+              </div>
+              <div class="div-amount">
+                <div class="div-amt-main">+862</div>
+                <div class="div-amt-sub">元</div>
+              </div>
+            </div>
+            <div class="div-item">
+              <div class="stock-dot" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)">建行</div>
+              <div class="div-info">
+                <div class="div-name">建设银行</div>
+                <div class="div-date">4月12日到账 · <span class="chip blue">预案</span></div>
+              </div>
+              <div class="div-amount">
+                <div class="div-amt-main">+1,240</div>
+                <div class="div-amt-sub">元</div>
+              </div>
+            </div>
+            <div class="div-item">
+              <div class="stock-dot" style="background:linear-gradient(135deg,#34D399,#059669)">长电</div>
+              <div class="div-info">
+                <div class="div-name">长江电力</div>
+                <div class="div-date">4月18日到账 · <span class="chip green">已到账</span></div>
+              </div>
+              <div class="div-amount">
+                <div class="div-amt-main">+450</div>
+                <div class="div-amt-sub">元</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Annual summary -->
+          <div class="section-title">今年累计收息</div>
+          <div class="card" style="padding:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <span style="font-size:13px;color:var(--t3)">2026年已到账</span>
+              <span style="font-size:22px;font-weight:800;color:var(--gold-text)">8,920 元</span>
+            </div>
+            <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:24%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:3px;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;">
+              <span style="font-size:10px;color:var(--t3)">已完成 24%</span>
+              <span style="font-size:10px;color:var(--t3)">全年目标 37,200 元</span>
+            </div>
+          </div>
+
+        </div>
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+          <div class="nav-item active">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>首页</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('calendar',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>日历</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('portfolio',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            <span>持仓</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('goal',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <span>目标</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('profile',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>我的</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ SCREEN 2: CALENDAR ============ -->
+      <div class="screen" id="screen-calendar">
+        <div class="screen-scroll">
+
+          <div class="cal-header">
+            <div class="cal-month-nav">
+              <div class="cal-nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              </div>
+              <div class="cal-month">2026年 4月</div>
+              <div class="cal-nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </div>
+            <div class="cal-summary">
+              <div class="cal-sum-item">
+                <div class="cal-sum-label">本月预计到账</div>
+                <div class="cal-sum-value" style="color:var(--gold-text)">2,552 元</div>
+              </div>
+              <div class="cal-sum-item">
+                <div class="cal-sum-label">分红笔数</div>
+                <div class="cal-sum-value">3 笔</div>
+              </div>
+              <div class="cal-sum-item">
+                <div class="cal-sum-label">涉及持仓</div>
+                <div class="cal-sum-value">3 支</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Calendar grid -->
+          <div class="cal-grid">
+            <div class="cal-weekdays">
+              <div class="cal-weekday">日</div><div class="cal-weekday">一</div>
+              <div class="cal-weekday">二</div><div class="cal-weekday">三</div>
+              <div class="cal-weekday">四</div><div class="cal-weekday">五</div>
+              <div class="cal-weekday">六</div>
+            </div>
+            <div class="cal-days">
+              <!-- Week 1 -->
+              <div class="cal-day dim">30</div><div class="cal-day dim">31</div>
+              <div class="cal-day">1</div><div class="cal-day">2</div>
+              <div class="cal-day gold-div selected"><span>3</span><div class="dot"></div></div>
+              <div class="cal-day">4</div><div class="cal-day">5</div>
+              <!-- Week 2 -->
+              <div class="cal-day">6</div><div class="cal-day">7</div>
+              <div class="cal-day">8</div><div class="cal-day">9</div>
+              <div class="cal-day">10</div><div class="cal-day">11</div>
+              <div class="cal-day gold-div"><span>12</span><div class="dot"></div></div>
+              <!-- Week 3 -->
+              <div class="cal-day">13</div><div class="cal-day">14</div>
+              <div class="cal-day">15</div><div class="cal-day">16</div>
+              <div class="cal-day">17</div>
+              <div class="cal-day green-div"><span>18</span><div class="dot"></div></div>
+              <div class="cal-day">19</div>
+              <!-- Week 4 -->
+              <div class="cal-day today">20</div>
+              <div class="cal-day">21</div><div class="cal-day">22</div>
+              <div class="cal-day">23</div><div class="cal-day">24</div>
+              <div class="cal-day">25</div><div class="cal-day">26</div>
+              <!-- Week 5 -->
+              <div class="cal-day">27</div><div class="cal-day">28</div>
+              <div class="cal-day">29</div><div class="cal-day">30</div>
+              <div class="cal-day dim">1</div><div class="cal-day dim">2</div>
+              <div class="cal-day dim">3</div>
+            </div>
+          </div>
+
+          <div class="cal-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div> 预案</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> 已确认</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> 已到账</div>
+            <div class="legend-item" style="margin-left:auto;"><div class="legend-dot" style="background:var(--bg3);border:2px solid var(--t3)"></div> 今天</div>
+          </div>
+
+          <!-- Selected date detail -->
+          <div class="section-title">4月3日 · 分红详情</div>
+          <div class="div-detail">
+            <div class="div-detail-header">
+              <span>工商银行 601398.SH</span>
+              <span class="chip gold">已确认</span>
+            </div>
+            <div style="padding:14px 16px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>
+                  <div style="font-size:10px;color:var(--t3);margin-bottom:3px">每股分红</div>
+                  <div style="font-size:16px;font-weight:700;color:var(--t1)">0.2977 元</div>
+                </div>
+                <div>
+                  <div style="font-size:10px;color:var(--t3);margin-bottom:3px">持仓数量</div>
+                  <div style="font-size:16px;font-weight:700;color:var(--t1)">2,895 股</div>
+                </div>
+                <div>
+                  <div style="font-size:10px;color:var(--t3);margin-bottom:3px">税前金额</div>
+                  <div style="font-size:16px;font-weight:700;color:var(--t1)">862.23 元</div>
+                </div>
+                <div>
+                  <div style="font-size:10px;color:var(--t3);margin-bottom:3px">预计到账</div>
+                  <div style="font-size:16px;font-weight:700;color:var(--gold-text)">862 元</div>
+                </div>
+              </div>
+              <div style="margin-top:12px;padding:10px;background:var(--bg3);border-radius:10px;font-size:11px;color:var(--t3)">
+                除息日 4月2日 · 股权登记日 4月1日 · 预计4月3日到账
+              </div>
+            </div>
+          </div>
+
+          <!-- All dividends this month -->
+          <div class="section-title">本月全部分红</div>
+          <div class="card">
+            <div class="div-item">
+              <div class="stock-dot" style="background:linear-gradient(135deg,#F5C842,#E8A020)">工行</div>
+              <div class="div-info">
+                <div class="div-name">工商银行</div>
+                <div class="div-date">4月3日 · 每股 0.2977元</div>
+              </div>
+              <div class="div-amount">
+                <div class="div-amt-main">+862</div>
+                <div class="div-amt-sub">元 · 已确认</div>
+              </div>
+            </div>
+            <div class="div-item">
+              <div class="stock-dot" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)">建行</div>
+              <div class="div-info">
+                <div class="div-name">建设银行</div>
+                <div class="div-date">4月12日 · 每股 0.389元</div>
+              </div>
+              <div class="div-amount">
+                <div class="div-amt-main">+1,240</div>
+                <div class="div-amt-sub">元 · 预案</div>
+              </div>
+            </div>
+            <div class="div-item">
+              <div class="stock-dot" style="background:linear-gradient(135deg,#34D399,#059669)">长电</div>
+              <div class="div-info">
+                <div class="div-name">长江电力</div>
+                <div class="div-date">4月18日 · 每股 0.90元</div>
+              </div>
+              <div class="div-amount">
+                <div class="div-amt-main">+450</div>
+                <div class="div-amt-sub">元 · 预案</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item" onclick="switchScreen('home',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>首页</span>
+          </div>
+          <div class="nav-item active">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>日历</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('portfolio',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            <span>持仓</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('goal',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <span>目标</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('profile',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>我的</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ SCREEN 3: PORTFOLIO ============ -->
+      <div class="screen" id="screen-portfolio">
+        <div class="screen-scroll">
+
+          <div class="portfolio-header">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-size:20px;font-weight:700;color:var(--t1)">我的持仓</div>
+                <div style="font-size:12px;color:var(--t3);margin-top:2px">A 股 · 共 6 支</div>
+              </div>
+              <div class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+            </div>
+            <div class="portfolio-total">
+              <div class="portfolio-total-label">总市值</div>
+              <div class="portfolio-total-val">624,300 <span style="font-size:16px;color:var(--t3);font-weight:400">元</span></div>
+              <div class="portfolio-annual">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#F5C842"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-4H9l3-3 3 3h-2v4z"/></svg>
+                <span>年化股息 37,200 元 · 综合股息率 5.96%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Import buttons -->
+          <div class="section-title">添加持仓</div>
+          <div class="import-btns">
+            <div class="import-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>CSV 导入</span>
+            </div>
+            <div class="import-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>截图识别</span>
+            </div>
+            <div class="import-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>手动添加</span>
+            </div>
+          </div>
+
+          <div class="section-title">持仓列表</div>
+
+          <!-- Stock 1 -->
+          <div class="stock-card">
+            <div class="stock-card-top">
+              <div class="stock-icon" style="background:linear-gradient(135deg,#F5C842,#E8A020)">工行</div>
+              <div class="stock-info">
+                <div class="stock-name">工商银行</div>
+                <div class="stock-code">601398.SH · 2,895 股</div>
+              </div>
+              <div class="stock-right">
+                <div class="stock-price">5.46 元</div>
+                <div class="stock-change pos">+0.92%</div>
+              </div>
+            </div>
+            <div class="stock-card-bottom">
+              <div class="stock-metric">
+                <div class="stock-metric-label">股息率</div>
+                <div class="stock-metric-val gold">5.45%</div>
+              </div>
+              <div class="stock-metric">
+                <div class="stock-metric-label">年分红</div>
+                <div class="stock-metric-val gold">862 元</div>
+              </div>
+              <div class="stock-metric">
+                <div class="stock-metric-label">下次分红</div>
+                <div class="stock-metric-val" style="font-size:11px">4月3日</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stock 2 -->
+          <div class="stock-card">
+            <div class="stock-card-top">
+              <div class="stock-icon" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)">建行</div>
+              <div class="stock-info">
+                <div class="stock-name">建设银行</div>
+                <div class="stock-code">601939.SH · 3,190 股</div>
+              </div>
+              <div class="stock-right">
+                <div class="stock-price">8.12 元</div>
+                <div class="stock-change neg">-0.24%</div>
+              </div>
+            </div>
+            <div class="stock-card-bottom">
+              <div class="stock-metric">
+                <div class="stock-metric-label">股息率</div>
+                <div class="stock-metric-val gold">4.79%</div>
+              </div>
+              <div class="stock-metric">
+                <div class="stock-metric-label">年分红</div>
+                <div class="stock-metric-val gold">1,241 元</div>
+              </div>
+              <div class="stock-metric">
+                <div class="stock-metric-label">下次分红</div>
+                <div class="stock-metric-val" style="font-size:11px">4月12日</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stock 3 -->
+          <div class="stock-card">
+            <div class="stock-card-top">
+              <div class="stock-icon" style="background:linear-gradient(135deg,#34D399,#059669)">长电</div>
+              <div class="stock-info">
+                <div class="stock-name">长江电力</div>
+                <div class="stock-code">600900.SH · 500 股</div>
+              </div>
+              <div class="stock-right">
+                <div class="stock-price">27.40 元</div>
+                <div class="stock-change pos">+1.22%</div>
+              </div>
+            </div>
+            <div class="stock-card-bottom">
+              <div class="stock-metric">
+                <div class="stock-metric-label">股息率</div>
+                <div class="stock-metric-val gold">3.28%</div>
+              </div>
+              <div class="stock-metric">
+                <div class="stock-metric-label">年分红</div>
+                <div class="stock-metric-val gold">450 元</div>
+              </div>
+              <div class="stock-metric">
+                <div class="stock-metric-label">下次分红</div>
+                <div class="stock-metric-val" style="font-size:11px">4月18日</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stock 4 -->
+          <div class="stock-card">
+            <div class="stock-card-top">
+              <div class="stock-icon" style="background:linear-gradient(135deg,#FB923C,#EA580C)">煤炭</div>
+              <div class="stock-info">
+                <div class="stock-name">中国神华</div>
+                <div class="stock-code">601088.SH · 600 股</div>
+              </div>
+              <div class="stock-right">
+                <div class="stock-price">38.22 元</div>
+                <div class="stock-change pos">+0.55%</div>
+              </div>
+            </div>
+            <div class="stock-card-bottom">
+              <div class="stock-metric">
+                <div class="stock-metric-label">股息率</div>
+                <div class="stock-metric-val gold">7.12%</div>
+              </div>
+              <div class="stock-metric">
+                <div class="stock-metric-label">年分红</div>
+                <div class="stock-metric-val gold">1,634 元</div>
+              </div>
+              <div class="stock-metric">
+                <div class="stock-metric-label">下次分红</div>
+                <div class="stock-metric-val" style="font-size:11px">6月底</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item" onclick="switchScreen('home',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>首页</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('calendar',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>日历</span>
+          </div>
+          <div class="nav-item active">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            <span>持仓</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('goal',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <span>目标</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('profile',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>我的</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ SCREEN 4: GOAL ============ -->
+      <div class="screen" id="screen-goal">
+        <div class="screen-scroll">
+
+          <div class="goal-hero">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+              <div>
+                <div style="font-size:20px;font-weight:700;color:var(--t1)">被动收入目标</div>
+                <div style="font-size:12px;color:var(--t3);margin-top:2px">每月 5,000 元</div>
+              </div>
+              <div class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </div>
+            </div>
+
+            <!-- Big ring -->
+            <div style="display:flex;justify-content:center;margin-bottom:16px;">
+              <div style="position:relative;display:inline-block;">
+                <svg width="160" height="160" viewBox="0 0 160 160" style="transform:rotate(-90deg)">
+                  <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="12"/>
+                  <circle cx="80" cy="80" r="68" fill="none" stroke="url(#goldGrad2)" stroke-width="12" stroke-linecap="round"
+                    stroke-dasharray="427" stroke-dashoffset="163"/>
+                </svg>
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                  <div style="font-size:42px;font-weight:800;color:var(--gold)">62%</div>
+                  <div style="font-size:11px;color:var(--t3)">目标达成</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Numbers -->
+            <div class="goal-numbers">
+              <div class="goal-num-card">
+                <div class="goal-num-label">当前月收息</div>
+                <div class="goal-num-val">3,100 <span class="goal-num-unit">元</span></div>
+              </div>
+              <div class="goal-num-card">
+                <div class="goal-num-label">目标月收息</div>
+                <div class="goal-num-val" style="color:var(--gold-text)">5,000 <span class="goal-num-unit">元</span></div>
+              </div>
+              <div class="goal-num-card">
+                <div class="goal-num-label">还差</div>
+                <div class="goal-num-val" style="color:var(--orange)">1,900 <span class="goal-num-unit">元/月</span></div>
+              </div>
+              <div class="goal-num-card">
+                <div class="goal-num-label">预计达成</div>
+                <div class="goal-num-val" style="font-size:16px">2027年8月</div>
+              </div>
+            </div>
+
+            <div class="goal-edit-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              调整目标金额
+            </div>
+          </div>
+
+          <!-- Milestone section -->
+          <div class="section-title">成就里程碑</div>
+          <div class="milestone-list">
+
+            <div class="milestone-item">
+              <div class="milestone-icon done">🎉</div>
+              <div class="milestone-body">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div class="milestone-title">第一笔分红到账</div>
+                  <div class="milestone-badge done">已达成</div>
+                </div>
+                <div class="milestone-sub">持股后收到第一笔分红</div>
+                <div class="milestone-date">2025年6月18日达成 · 工商银行 +234元</div>
+              </div>
+            </div>
+
+            <div class="milestone-item">
+              <div class="milestone-icon done">🏅</div>
+              <div class="milestone-body">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div class="milestone-title">月收息破千</div>
+                  <div class="milestone-badge done">已达成</div>
+                </div>
+                <div class="milestone-sub">月均股息收入超过 1,000 元</div>
+                <div class="milestone-date">2025年9月达成</div>
+              </div>
+            </div>
+
+            <div class="milestone-item">
+              <div class="milestone-icon done">⭐</div>
+              <div class="milestone-body">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div class="milestone-title">目标达成 25%</div>
+                  <div class="milestone-badge done">已达成</div>
+                </div>
+                <div class="milestone-sub">月收息达到目标的 1/4</div>
+                <div class="milestone-date">2025年11月达成</div>
+              </div>
+            </div>
+
+            <div class="milestone-item">
+              <div class="milestone-icon done">🌟</div>
+              <div class="milestone-body">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div class="milestone-title">目标达成 50%</div>
+                  <div class="milestone-badge done">已达成</div>
+                </div>
+                <div class="milestone-sub">月收息达到目标的一半</div>
+                <div class="milestone-date">2026年2月达成</div>
+              </div>
+            </div>
+
+            <div class="milestone-item">
+              <div class="milestone-icon next">🎯</div>
+              <div class="milestone-body">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div class="milestone-title">目标达成 75%</div>
+                  <div class="milestone-badge next">进行中</div>
+                </div>
+                <div class="milestone-sub">月收息达到 3,750 元，还差 650 元</div>
+                <div style="margin-top:8px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;">
+                  <div style="height:100%;width:83%;background:linear-gradient(90deg,var(--orange),#F5C842);border-radius:2px;"></div>
+                </div>
+                <div style="font-size:10px;color:var(--t3);margin-top:3px">3,100 / 3,750 元 (83%)</div>
+              </div>
+            </div>
+
+            <div class="milestone-item">
+              <div class="milestone-icon pending">🏆</div>
+              <div class="milestone-body">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div class="milestone-title">目标全部达成</div>
+                  <div class="milestone-badge lock">未解锁</div>
+                </div>
+                <div class="milestone-sub">月均股息 ≥ 5,000 元</div>
+                <div class="milestone-date">预计 2027年8月 达成</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item" onclick="switchScreen('home',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>首页</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('calendar',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>日历</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('portfolio',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            <span>持仓</span>
+          </div>
+          <div class="nav-item active">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <span>目标</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('profile',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>我的</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ SCREEN 5: PROFILE ============ -->
+      <div class="screen" id="screen-profile">
+        <div class="screen-scroll">
+
+          <div class="profile-hero">
+            <div class="profile-avatar">Y</div>
+            <div class="profile-info">
+              <div class="profile-name">Ying</div>
+              <div class="profile-id">UID · 10248621</div>
+              <div class="profile-member-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                会员用户 · 年度会员
+              </div>
+            </div>
+          </div>
+
+          <!-- Member card -->
+          <div class="member-card">
+            <div class="member-card-left">
+              <div class="member-label">✦ 年度会员权益</div>
+              <div class="member-expire">有效至 2027年3月30日</div>
+              <div class="member-perks">无限持仓 · 12个月日历 · 无广告 · 复利模拟器</div>
+            </div>
+            <div class="renew-btn">续费</div>
+          </div>
+
+          <!-- Stats summary -->
+          <div class="stats-row" style="margin-bottom:4px;">
+            <div class="stat-card">
+              <div class="stat-label">加入天数</div>
+              <div class="stat-value">287</div>
+              <div class="stat-sub">天</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">累计收息</div>
+              <div class="stat-value">21,460</div>
+              <div class="stat-sub">元（历史累计）</div>
+            </div>
+          </div>
+
+          <!-- Data settings -->
+          <div class="settings-group">
+            <div class="settings-group-title">数据与通知</div>
+            <div class="setting-item">
+              <div class="setting-icon" style="background:var(--gold-dim)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#F5C842" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              </div>
+              <div class="setting-text">
+                <div class="setting-name">分红到账提醒</div>
+                <div class="setting-desc">除息日前3天 + 预计到账日</div>
+              </div>
+              <div class="toggle"></div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-icon" style="background:var(--blue-dim)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div class="setting-text">
+                <div class="setting-name">分红公告推送</div>
+                <div class="setting-desc">持仓股票发布分红预案时</div>
+              </div>
+              <div class="toggle"></div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-icon" style="background:var(--green-dim)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </div>
+              <div class="setting-text">
+                <div class="setting-name">导出数据</div>
+                <div class="setting-desc">导出持仓与分红记录 Excel</div>
+              </div>
+              <div class="setting-right">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- App settings -->
+          <div class="settings-group">
+            <div class="settings-group-title">应用设置</div>
+            <div class="setting-item">
+              <div class="setting-icon" style="background:var(--orange-dim)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#FB923C" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+              </div>
+              <div class="setting-text">
+                <div class="setting-name">A 股数据更新</div>
+                <div class="setting-desc">最后同步：今天 08:30</div>
+              </div>
+              <div class="setting-right">
+                手动刷新
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-icon" style="background:rgba(156,163,181,0.1)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#9BA3B5" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              </div>
+              <div class="setting-text">
+                <div class="setting-name">复利模拟器</div>
+                <div class="setting-desc">模拟 DRIP 再投入的未来现金流</div>
+              </div>
+              <div class="setting-right">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-icon" style="background:rgba(156,163,181,0.1)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#9BA3B5" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <div class="setting-text">
+                <div class="setting-name">关于 & 帮助</div>
+                <div class="setting-desc">版本 1.0.0</div>
+              </div>
+              <div class="setting-right">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div style="text-align:center;padding:12px;font-size:11px;color:var(--t3);">
+            攒股收息 v1.0.0 · 数据仅供参考，不构成投资建议
+          </div>
+
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item" onclick="switchScreen('home',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>首页</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('calendar',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>日历</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('portfolio',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            <span>持仓</span>
+          </div>
+          <div class="nav-item" onclick="switchScreen('goal',null)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <span>目标</span>
+          </div>
+          <div class="nav-item active">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>我的</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /phone-inner -->
+  </div><!-- /phone-shell -->
+</div><!-- /phone-wrap -->
+
+<script>
+const screenMap = {
+  home: 'screen-home',
+  calendar: 'screen-calendar',
+  portfolio: 'screen-portfolio',
+  goal: 'screen-goal',
+  profile: 'screen-profile',
+};
+const tabLabels = ['首页','股息日历','持仓管理','目标 & 里程碑','账户设置'];
+const tabKeys = ['home','calendar','portfolio','goal','profile'];
+
+function switchScreen(key, tabEl) {
+  // hide all screens
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenMap[key]).classList.add('active');
+
+  // update top tabs
+  if (tabEl) {
+    document.querySelectorAll('.screen-tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+  } else {
+    // find by key
+    const idx = tabKeys.indexOf(key);
+    const tabs = document.querySelectorAll('.screen-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    if (tabs[idx]) tabs[idx].classList.add('active');
+  }
+
+  // scroll screen to top
+  const sc = document.querySelector(`#${screenMap[key]} .screen-scroll`);
+  if (sc) sc.scrollTop = 0;
+}
+</script>
+</body>
+</html>
