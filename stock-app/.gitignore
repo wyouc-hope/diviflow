@@ -1,4 +1,7 @@
 node_modules
+.next
+prisma/dev.db
+prisma/*.db-journal
 # Keep environment variables out of version control
 .env
 
