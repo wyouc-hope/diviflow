@@ -1,11 +1,24 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import BottomNav from '@/components/BottomNav';
-import StatusBar from '@/components/StatusBar';
+import NativeInit from '@/components/NativeInit';
 
 export const metadata: Metadata = {
   title: '攒股收息',
   description: '股息收入追踪与管理应用',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: '攒股收息',
+  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -15,15 +28,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className="flex flex-col items-center py-8 px-6 min-h-screen bg-[#e8e8e8]">
-        <div className="relative w-[375px]">
-          <div className="phone-shell">
-            <div className="phone-inner">
-              <StatusBar />
-              {children}
-              <BottomNav />
-            </div>
-          </div>
+      <body>
+        <NativeInit />
+        <div className="app-container">
+          {children}
+          <BottomNav />
         </div>
       </body>
     </html>

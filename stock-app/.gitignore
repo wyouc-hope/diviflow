@@ -6,3 +6,8 @@ prisma/*.db-journal
 .env
 
 /src/generated/prisma
+
+# Capacitor / iOS
+ios/App/App/public
+ios/App/Pods
+ios/DerivedData

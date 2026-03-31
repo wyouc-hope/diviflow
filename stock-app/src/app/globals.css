@@ -24,64 +24,54 @@
 
   --down: #00a804;
   --down-dim: rgba(0, 168, 4, 0.08);
+
+  /* iOS Safe Area */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  /* 禁止 iOS WebView 中的文字选择和长按菜单 */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 body {
   font-family: -apple-system, 'PingFang SC', 'SF Pro Display', 'Helvetica Neue',
     sans-serif;
-  background: #e8e8e8;
-  min-height: 100vh;
-}
-
-/* Phone shell styles */
-.phone-shell {
-  background: #fff;
-  border-radius: 50px;
-  border: 2px solid #cccccc;
-  padding: 14px 10px 18px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 30px 60px rgba(0, 0, 0, 0.12);
-}
-
-.phone-shell::before {
-  content: '';
-  position: absolute;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120px;
-  height: 30px;
-  background: #fff;
-  border-radius: 0 0 18px 18px;
-  z-index: 10;
-  border: 2px solid #cccccc;
-  border-top: none;
-}
-
-.phone-inner {
-  border-radius: 38px;
-  overflow: hidden;
   background: var(--bg);
-  height: 780px;
-  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Status bar */
-.status-bar {
-  height: 44px;
+/* App container - 全屏布局 */
+.app-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+/* iOS 原生状态栏占位 */
+.native-status-bar-spacer {
+  height: var(--safe-top, 0px);
+  min-height: 0;
   background: #fff;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding: 0 24px 8px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #000;
   flex-shrink: 0;
 }
 
@@ -89,7 +79,8 @@ body {
 .screen {
   display: flex;
   flex-direction: column;
-  height: 736px;
+  min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   animation: fadeIn 0.2s ease;
 }
@@ -108,28 +99,31 @@ body {
 .screen-scroll {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 80px;
+  padding-bottom: calc(80px + var(--safe-bottom, 0px));
+  padding-top: var(--safe-top, 0px);
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .screen-scroll::-webkit-scrollbar {
   display: none;
 }
 
-/* Bottom nav */
+/* Bottom nav - 适配 iOS Safe Area */
 .bottom-nav {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 80px;
+  height: calc(66px + var(--safe-bottom, 0px));
   background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 0.5px solid var(--border);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-around;
-  padding: 0 8px 14px;
+  padding: 8px 8px var(--safe-bottom, 0px);
   z-index: 100;
 }
 
@@ -137,7 +131,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   cursor: pointer;
   opacity: 0.3;
   transition: opacity 0.15s;
@@ -184,7 +178,7 @@ body {
 
 /* Divider */
 .divider {
-  height: 1px;
+  height: 0.5px;
   background: var(--border);
   margin: 0 20px;
 }
@@ -238,12 +232,14 @@ body {
   font-weight: 700;
   color: #fff;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: all 0.15s;
   letter-spacing: -0.2px;
+  border: none;
 }
 
-.black-btn:hover {
-  opacity: 0.85;
+.black-btn:active {
+  opacity: 0.7;
+  transform: scale(0.97);
 }
 
 .black-btn.sm {
@@ -268,6 +264,13 @@ body {
   font-weight: 700;
   color: #fff;
   cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+
+.green-btn:active {
+  opacity: 0.7;
+  transform: scale(0.97);
 }
 
 /* Toggle switch */
@@ -321,4 +324,17 @@ body {
 .sparkline {
   width: 56px;
   height: 26px;
+}
+
+/* Loading skeleton */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--ghost) 25%, var(--bg2) 50%, var(--ghost) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
 }
