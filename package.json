@@ -1,0 +1,20 @@
+{
+  "name": "diviflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DiviFlow · 息流 — 分红投资者工具（Monorepo 根）",
+  "workspaces": [
+    "apps/mobile"
+  ],
+  "scripts": {
+    "mobile": "npm run -w apps/mobile start",
+    "mobile:ios": "npm run -w apps/mobile ios",
+    "mobile:android": "npm run -w apps/mobile android",
+    "lint": "npm run -w apps/mobile lint",
+    "format": "npm run -w apps/mobile format",
+    "api:dev": "cd apps/api && uvicorn app.main:app --reload"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

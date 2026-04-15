@@ -1,0 +1,2711 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DiviFlow · 息流 — 交互原型</title>
+<style>
+/* ─── Reset ─── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg0:#0a0a08;--bg1:#111110;--bg2:#1a1a17;--bg3:#242420;--bg4:#2c2c28;
+  --gold:#c8a84b;--gold2:#e8c96a;--gdim:#8a7235;--gold-faint:rgba(200,168,75,.08);
+  --green:#e5514a;--green-bg:rgba(229,81,74,.14);--green-bd:rgba(229,81,74,.22);
+  --red:#e74c3c;--blue:#5aabf5;
+  --t0:#f0ead6;--t1:#c8bfa0;--t2:#8a8070;--t3:#5a5448;
+  --bd:#2a2a25;--bd2:#3a3830;
+  --sidebar:220px;
+}
+html,body{height:100%;background:var(--bg0);font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;overflow:hidden}
+
+/* ─── Layout ─── */
+.app{display:flex;height:100vh}
+
+/* ─── Sidebar ─── */
+.sidebar{width:var(--sidebar);background:var(--bg1);border-right:.5px solid var(--bd2);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.sidebar::-webkit-scrollbar{width:0}
+.sidebar-logo{padding:18px 16px 12px;border-bottom:.5px solid var(--bd)}
+.sidebar-logo h1{font-size:13px;font-weight:600;color:var(--gold2);letter-spacing:.04em}
+.sidebar-logo p{font-size:9px;color:var(--t3);margin-top:2px;letter-spacing:.04em}
+.sidebar-section{padding:12px 14px 4px;font-size:9px;letter-spacing:.1em;font-weight:500;color:var(--t3);text-transform:uppercase}
+.nav-item{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;border-radius:6px;margin:1px 6px;transition:background .15s}
+.nav-item:hover{background:var(--bg2)}
+.nav-item.active{background:rgba(200,168,75,.12);border:.5px solid rgba(200,168,75,.2)}
+.nav-item.active .nav-label{color:var(--gold2);font-weight:500}
+.nav-label{font-size:12px;color:var(--t1)}
+.nav-id{font-size:9px;color:var(--t3);margin-right:4px}
+.nav-badge{font-size:8px;background:rgba(200,168,75,.15);color:var(--gold);border:.5px solid rgba(200,168,75,.28);padding:1px 5px;border-radius:3px;font-weight:500}
+.nav-badge.p0{background:rgba(231,76,60,.18);color:#e74c3c;border-color:rgba(231,76,60,.3)}
+.nav-item[style*="padding-left:24px"]{position:relative;margin-left:16px;margin-right:6px;border-left:1.5px solid rgba(231,76,60,.25);border-radius:0 6px 6px 0;padding-left:12px !important}
+.nav-item[style*="padding-left:24px"]:hover{background:rgba(231,76,60,.06)}
+
+/* ─── Main area ─── */
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:28px 24px 40px;background:var(--bg0)}
+.main::-webkit-scrollbar{width:4px}
+.main::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+.screen-header{text-align:center;margin-bottom:20px;width:100%}
+.screen-tag{display:inline-block;font-size:9px;letter-spacing:.08em;color:var(--t3);text-transform:uppercase;background:var(--bg2);border:.5px solid var(--bd2);padding:3px 10px;border-radius:20px;margin-bottom:8px}
+.screen-title{font-size:22px;font-weight:600;color:var(--gold2);letter-spacing:-.3px}
+.screen-sub{font-size:12px;color:var(--t2);margin-top:4px}
+
+/* ─── Phone shell ─── */
+.phone-wrap{display:flex;justify-content:center}
+.phone{width:280px;background:var(--bg1);border:1.5px solid var(--bd2);border-radius:40px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 .5px rgba(200,168,75,.08),0 24px 56px rgba(0,0,0,.75)}
+.sb{height:32px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--bg1)}
+.sbt{font-size:12px;font-weight:600;color:var(--t0)}
+.sbr{font-size:10px;color:var(--t2);display:flex;align-items:center;gap:5px}
+.sc{overflow-y:auto;overflow-x:hidden;background:var(--bg0);scrollbar-width:none;flex:1}
+.sc::-webkit-scrollbar{display:none}
+.tb{height:54px;background:var(--bg1);border-top:.5px solid var(--bd);display:flex;align-items:center;flex-shrink:0}
+.ti{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.ti .ic{font-size:16px;line-height:1}
+.ti .tx{font-size:8px;color:var(--t3)}
+.ti.on .tx{color:var(--gold)}
+
+/* ─── Shared UI ─── */
+.greet{display:flex;align-items:center;gap:10px;padding:12px 14px 8px}
+.av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gdim),var(--gold));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--bg0);flex-shrink:0}
+.gn{font-size:14px;font-weight:500;color:var(--t0)}
+.gs{font-size:9px;color:var(--t2)}
+.probadge{margin-left:auto;background:linear-gradient(135deg,var(--gdim),var(--gold));color:var(--bg0);font-size:8px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.04em}
+.card{border-radius:14px;margin:6px 10px;overflow:hidden}
+.ci{padding:12px 14px}
+.st{font-size:9px;letter-spacing:.07em;color:var(--t2);text-transform:uppercase;padding:8px 12px 4px}
+.ldot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:ld 2s ease-in-out infinite;display:inline-block}
+@keyframes ld{0%,100%{opacity:1}50%{opacity:.2}}
+.pchg{display:inline-flex;align-items:center;background:var(--green-bg);border:.5px solid var(--green-bd);color:var(--green);font-size:9px;padding:2px 8px;border-radius:4px;margin-top:4px}
+.pill{font-size:9px;padding:3px 8px;border-radius:20px;border:.5px solid var(--bd2);color:var(--t2)}
+.pill.on{background:var(--gold);color:var(--bg0);border-color:var(--gold)}
+.pills{display:flex;gap:3px}
+
+/* screens */
+.screen{display:none}
+.screen.active{display:block}
+
+/* ─── Splash ─── */
+.splash-inner{height:520px;background:linear-gradient(165deg,#1a1c10 0%,#0a0a08 60%,#0d1008 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;position:relative;overflow:hidden}
+.splash-glow{position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(200,168,75,.12) 0%,transparent 70%)}
+.splash-icon{font-size:52px;margin-bottom:16px;position:relative;z-index:1}
+.splash-name{font-size:28px;font-weight:700;color:var(--gold2);letter-spacing:-.5px;position:relative;z-index:1}
+.splash-sub{font-size:12px;color:var(--t2);margin-top:6px;position:relative;z-index:1}
+.splash-line{width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);margin:20px auto 0;position:relative;z-index:1}
+.splash-loading{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;gap:5px}
+.splash-dot{width:5px;height:5px;border-radius:50%;background:var(--bd2)}
+.splash-dot.on{background:var(--gold)}
+.splash-hint{position:absolute;bottom:16px;font-size:9px;color:var(--t3);letter-spacing:.06em}
+
+/* ─── Auth ─── */
+.auth-inner{height:520px;background:linear-gradient(160deg,#181815 0%,#0a0a08 100%);display:flex;flex-direction:column;padding:32px 20px 24px}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-logo .icon{font-size:32px;margin-bottom:8px}
+.auth-logo h2{font-size:18px;font-weight:600;color:var(--gold2)}
+.auth-logo p{font-size:10px;color:var(--t2);margin-top:3px}
+.auth-tab{display:flex;background:var(--bg3);border-radius:10px;padding:3px;margin-bottom:20px}
+.auth-tab-btn{flex:1;padding:6px;text-align:center;font-size:11px;font-weight:500;color:var(--t2);border-radius:8px;cursor:pointer}
+.auth-tab-btn.on{background:var(--bg1);color:var(--t0)}
+.field-label{font-size:9px;color:var(--t2);margin-bottom:4px;letter-spacing:.04em;text-transform:uppercase}
+.field{background:var(--bg2);border:.5px solid var(--bd2);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--t0);margin-bottom:10px}
+.field.focus{border-color:rgba(200,168,75,.4)}
+.field-val{color:var(--t1)}
+.btn-gold{background:linear-gradient(135deg,var(--gdim),var(--gold2));color:var(--bg0);font-size:13px;font-weight:700;padding:13px;border-radius:12px;text-align:center;cursor:pointer;margin-top:4px;letter-spacing:.02em}
+.btn-outline{border:.5px solid var(--bd2);color:var(--t2);font-size:12px;padding:11px;border-radius:12px;text-align:center;cursor:pointer;margin-top:8px;text-align:center}
+.auth-or{text-align:center;font-size:10px;color:var(--t3);margin:10px 0}
+.auth-social{display:flex;gap:8px;margin-bottom:12px}
+.social-btn{flex:1;background:var(--bg2);border:.5px solid var(--bd2);border-radius:10px;padding:9px;text-align:center;font-size:10px;color:var(--t1);cursor:pointer}
+.auth-link{text-align:center;font-size:10px;color:var(--t2);margin-top:8px}
+.auth-link span{color:var(--gold)}
+
+/* ─── Onboarding ─── */
+.ob-inner{height:520px;background:linear-gradient(160deg,#181815,#0a0a08);display:flex;flex-direction:column;padding:0}
+.ob-prog{display:flex;gap:4px;padding:16px 20px 0}
+.ob-prog-bar{flex:1;height:2px;border-radius:1px;background:var(--bd2)}
+.ob-prog-bar.done{background:var(--gold)}
+.ob-prog-bar.active{background:linear-gradient(90deg,var(--gold),var(--gdim))}
+.ob-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px}
+.ob-emoji{font-size:48px;margin-bottom:16px}
+.ob-title{font-size:18px;font-weight:600;color:var(--t0);text-align:center;margin-bottom:8px}
+.ob-sub{font-size:11px;color:var(--t2);text-align:center;line-height:1.6}
+.ob-options{width:100%;margin-top:16px;display:flex;flex-direction:column;gap:7px}
+.ob-option{background:var(--bg2);border:.5px solid var(--bd2);border-radius:11px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.ob-option.sel{background:rgba(200,168,75,.08);border-color:rgba(200,168,75,.35)}
+.ob-option-text{font-size:12px;color:var(--t0)}
+.ob-option-check{width:18px;height:18px;border-radius:50%;border:.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--t3)}
+.ob-option.sel .ob-option-check{background:var(--gold);border-color:var(--gold);color:var(--bg0)}
+.ob-footer{padding:16px 20px;display:flex;gap:8px}
+.ob-btn-skip{flex:0 0 60px;border:.5px solid var(--bd2);border-radius:11px;padding:11px;text-align:center;font-size:11px;color:var(--t2);cursor:pointer}
+.ob-btn-next{flex:1;background:linear-gradient(135deg,var(--gdim),var(--gold2));color:var(--bg0);font-size:12px;font-weight:700;padding:12px;border-radius:11px;text-align:center;cursor:pointer}
+
+/* ─── Home ─── */
+.pcard{background:linear-gradient(150deg,#1f1d14,#141310);border:.5px solid rgba(200,168,75,.2)}
+.portcard{background:linear-gradient(150deg,#181815,#111110);border:.5px solid var(--bd2)}
+.pvlbl{font-size:9px;color:var(--t2);margin-bottom:2px}
+.pv{font-size:28px;font-weight:700;color:var(--gold2);letter-spacing:-.5px}
+.pret{display:inline-flex;background:var(--green-bg);border:.5px solid var(--green-bd);color:var(--green);font-size:9px;padding:2px 8px;border-radius:4px;margin:4px 0 10px}
+.psg{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:.5px solid var(--bd);padding-top:8px}
+.ps .k{font-size:8px;color:var(--t3)}
+.ps .v{font-size:12px;font-weight:500;color:var(--t0);margin-top:1px}
+.ps .v.g{color:var(--green)}
+.qr{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 10px 5px}
+.qa{background:var(--bg2);border:.5px solid var(--bd2);border-radius:12px;padding:11px}
+.qa.p{background:linear-gradient(135deg,#271f08,#1b1508);border-color:rgba(200,168,75,.28)}
+.qin{font-size:19px;margin-bottom:6px}
+.qn{font-size:12px;font-weight:500;color:var(--t0)}
+.qa.p .qn{color:var(--gold2)}
+.qs{font-size:9px;color:var(--t2)}
+.hi{display:flex;align-items:center;gap:9px;padding:10px 14px;border-bottom:.5px solid var(--bd)}
+.hi:last-child{border-bottom:none}
+.hico{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#2a2510,#1a1808);border:.5px solid rgba(200,168,75,.18);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--t1);flex-shrink:0}
+.hn{font-size:12px;font-weight:500;color:var(--t0)}
+.hm{font-size:9px;color:var(--t2);margin-top:1px}
+.hr{margin-left:auto;text-align:right}
+.hv{font-size:12px;font-weight:500;color:var(--t0)}
+.hrr{font-size:9px;color:var(--green);margin-top:1px}
+.mt{font-size:7px;background:rgba(200,168,75,.1);color:var(--gold);border:.5px solid rgba(200,168,75,.18);padding:1px 3px;border-radius:3px;margin-left:2px}
+
+/* ─── FI ─── */
+.fihero{background:linear-gradient(150deg,#1a1c14,#0e0f0b);border:.5px solid rgba(200,168,75,.14);border-radius:14px;margin:6px 10px;padding:14px}
+.fipct{font-size:32px;font-weight:700;color:var(--gold2);line-height:1}
+.fisub{font-size:9px;color:var(--t2);margin:3px 0 10px}
+.fibar{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:7px}
+.fifill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gdim),var(--gold2))}
+.fimarks{display:flex;justify-content:space-between;font-size:8px;color:var(--t3)}
+.ms{display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:.5px solid var(--bd)}
+.ms:last-child{border-bottom:none}
+.msd{width:21px;height:21px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.md{background:rgba(229,81,74,.14);border:.5px solid var(--green);color:var(--green)}
+.mp{background:rgba(200,168,75,.1);border:.5px solid var(--gdim);color:var(--gold)}
+.ml{background:var(--bg3);border:.5px solid var(--bd2);color:var(--t3)}
+.msn{font-size:12px;font-weight:500;color:var(--t0)}
+.mss{font-size:9px;color:var(--t2)}
+.msr{margin-left:auto;font-size:9px}
+.msr.d{color:var(--gold2)}.msr.p{color:var(--gold)}.msr.l{color:var(--t3)}
+
+/* ─── Calendar ─── */
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;padding:4px 12px 6px}
+.cdl{font-size:8px;text-align:center;color:var(--t3);padding:3px 0}
+.cd{font-size:9px;text-align:center;padding:4px 0;color:var(--t1)}
+.cd.td .cdi{background:var(--gold);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;margin:auto;color:var(--bg0);font-weight:700;font-size:9px}
+.cdots{display:flex;justify-content:center;gap:1px;margin-top:1px}
+.dot{width:4px;height:4px;border-radius:50%;display:inline-block}
+.evcard{background:var(--bg2);border:.5px solid var(--bd2);border-radius:12px;padding:10px 12px;margin:0 10px 5px}
+.evcard.xr{border-left:2.5px solid var(--red)}
+.evcard.pay{border-left:2.5px solid var(--green)}
+.evtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.evname{font-size:12px;font-weight:500;color:var(--t0)}
+.evtag{font-size:8px;padding:1px 6px;border-radius:3px}
+.txr{background:rgba(231,76,60,.16);color:var(--red)}
+.tpay{background:rgba(229,81,74,.14);color:var(--green)}
+.evamt{font-size:14px;font-weight:700;color:var(--gold2)}
+.evmeta{font-size:9px;color:var(--t2);margin-top:2px}
+
+/* ─── Add Holding ─── */
+.addh-inner{height:520px;background:var(--bg1);display:flex;flex-direction:column}
+.addh-handle{width:36px;height:3px;background:var(--bd2);border-radius:2px;margin:10px auto 0}
+.addh-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px}
+.addh-title{font-size:16px;font-weight:600;color:var(--t0)}
+.addh-mode-sel{background:var(--bg3);border:.5px solid var(--bd2);color:var(--t1);font-size:10px;padding:4px 10px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:4px}
+.addh-ai{background:rgba(139,92,246,.2);border:.5px solid rgba(139,92,246,.4);color:#c4b5fd;font-size:10px;font-weight:500;padding:5px 12px;border-radius:20px;cursor:pointer;align-self:flex-end;margin:0 16px 8px;display:flex;align-items:center;gap:4px}
+.addh-display{display:flex;flex-direction:column;align-items:center;padding:10px 0 12px}
+.addh-big{font-size:44px;font-weight:300;color:var(--t3);letter-spacing:-1px;line-height:1}
+.addh-big.has-val{color:var(--gold2)}
+.addh-unit{font-size:12px;color:var(--t2);margin-top:4px}
+.addh-tabs{display:flex;background:var(--bg3);margin:0 16px 12px;border-radius:10px;padding:3px}
+.addh-tab{flex:1;padding:7px;text-align:center;font-size:11px;font-weight:500;color:var(--t2);border-radius:8px;cursor:pointer}
+.addh-tab.on{background:var(--gold);color:var(--bg0)}
+.field-group{padding:0 16px;margin-bottom:9px}
+.fl{font-size:9px;color:var(--t2);margin-bottom:4px;letter-spacing:.04em;text-transform:uppercase}
+.fv{background:var(--bg2);border:.5px solid var(--bd2);border-radius:10px;padding:10px 13px;font-size:12px;color:var(--t0);display:flex;justify-content:space-between;align-items:center}
+.fv .placeholder{color:var(--t3)}
+.fv .chevron{color:var(--t3);font-size:11px}
+.addh-cta{margin:10px 16px 0;background:linear-gradient(135deg,var(--gdim),var(--gold2));color:var(--bg0);font-size:13px;font-weight:700;padding:13px;border-radius:13px;text-align:center;cursor:pointer}
+
+/* ─── Notifications ─── */
+.nhero{background:linear-gradient(135deg,#1a1c14,#0e0f0b);border:.5px solid var(--green-bd);border-radius:14px;margin:6px 10px;padding:14px}
+.namt{font-size:26px;font-weight:700;color:var(--green);margin:3px 0}
+.nbr{display:flex;gap:4px;margin-top:9px;flex-wrap:wrap}
+.nb{font-size:8px;padding:2px 8px;border-radius:4px;background:rgba(229,81,74,.1);color:var(--green);border:.5px solid rgba(229,81,74,.18)}
+.nc{background:var(--bg2);border:.5px solid var(--bd2);border-radius:11px;padding:10px 12px;margin:0 10px 5px}
+.nc.w{border-left:2.5px solid var(--gold)}
+.nc.b{border-left:2.5px solid var(--blue)}
+.nc.n{border-left:2.5px solid var(--bd2)}
+.nct{font-size:12px;font-weight:500;color:var(--t0);margin-bottom:2px}
+.ncb{font-size:9px;color:var(--t2);line-height:1.5}
+
+/* ─── Streak ─── */
+.streak{background:linear-gradient(150deg,#1e1c14,#111110);border:.5px solid rgba(200,168,75,.18);border-radius:14px;margin:6px 10px;padding:12px}
+.snum{font-size:26px;font-weight:700;color:var(--gold2)}
+.ssub{font-size:9px;color:var(--t2);margin-top:1px}
+.hmap{display:grid;grid-template-columns:repeat(14,1fr);gap:2px;margin-top:9px}
+.hc{padding-top:100%;border-radius:2px}
+.hon{background:#c0392b}.hdim{background:rgba(192,57,43,.2)}.hoff{background:var(--bg4)}
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 10px}
+.bi{display:flex;flex-direction:column;align-items:center;gap:3px}
+.bic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.earn{background:linear-gradient(135deg,#2a2510,#1a1808);border:.5px solid rgba(200,168,75,.28)}
+.bloc{background:var(--bg3);border:.5px solid var(--bd);opacity:.4}
+.bl{font-size:8px;color:var(--t2);text-align:center;line-height:1.3}
+
+/* ─── Settings ─── */
+.shero{background:linear-gradient(150deg,#1e1c14,#111110);padding:14px}
+.sstats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:11px}
+.ss{background:rgba(255,255,255,.04);border:.5px solid var(--bd);border-radius:10px;padding:9px;text-align:center}
+.ssv{font-size:14px;font-weight:600;color:var(--gold2)}
+.ssv.gr{color:var(--green)}
+.ssk{font-size:8px;color:var(--t3);margin-top:1px}
+.si{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:.5px solid var(--bd)}
+.si:last-child{border-bottom:none}
+.sil{font-size:13px;color:var(--t0)}
+.sir{font-size:10px;color:var(--t2)}
+.sir.ac{color:var(--gold2)}
+
+/* ─── Discover ─── */
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 10px}
+.tc{background:var(--bg2);border:.5px solid var(--bd2);border-radius:12px;padding:11px}
+.tc.feat{background:linear-gradient(135deg,#1e1c14,#141210);border-color:rgba(200,168,75,.22)}
+.tci{font-size:17px;margin-bottom:6px}
+.tcn{font-size:12px;font-weight:500;color:var(--t0)}
+.tcd{font-size:9px;color:var(--t2);margin-top:2px;line-height:1.3}
+.tcb{display:inline-block;margin-top:5px;font-size:8px;padding:2px 6px;border-radius:3px}
+.bfree{background:rgba(229,81,74,.1);color:var(--green);border:.5px solid rgba(229,81,74,.18)}
+.bpro{background:rgba(200,168,75,.1);color:var(--gold);border:.5px solid rgba(200,168,75,.2)}
+
+/* dividers etc */
+.sp{height:8px}
+.divh{height:.5px;background:var(--bd);margin:4px 10px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <h1>💰 DiviFlow</h1>
+    <p>息流 · 高保真交互原型</p>
+  </div>
+
+  <!-- ── ACQUISITION ── -->
+  <div class="sidebar-section">ACQUISITION</div>
+  <div class="nav-item active" onclick="show('splash')" id="nav-splash">
+    <div><span class="nav-id">S1</span><span class="nav-label">启动页 Splash</span></div>
+  </div>
+  <div class="nav-item" onclick="show('signin')" id="nav-signin">
+    <div><span class="nav-id">S2</span><span class="nav-label">登录 Sign In</span></div>
+  </div>
+  <div class="nav-item" onclick="show('resetpwd')" id="nav-resetpwd" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#e74c3c">S2r</span><span class="nav-label" style="color:var(--t2)">↳ 忘记密码</span></div>
+    <span class="nav-badge p0">P0</span>
+  </div>
+  <div class="nav-item" onclick="show('register')" id="nav-register">
+    <div><span class="nav-id">S3</span><span class="nav-label">注册 Register</span></div>
+  </div>
+  <div class="nav-item" onclick="show('ob1')" id="nav-ob1">
+    <div><span class="nav-id">S4a</span><span class="nav-label">Onboarding · 地区</span></div>
+    <span style="font-size:8px;color:var(--t3);background:var(--bg3);padding:1px 5px;border-radius:3px">二期</span>
+  </div>
+  <div class="nav-item" onclick="show('ob2')" id="nav-ob2">
+    <div><span class="nav-id">S4b</span><span class="nav-label">Onboarding · 资产</span></div>
+    <span style="font-size:8px;color:var(--t3);background:var(--bg3);padding:1px 5px;border-radius:3px">二期</span>
+  </div>
+  <div class="nav-item" onclick="show('ob3')" id="nav-ob3">
+    <div><span class="nav-id">S4c</span><span class="nav-label">Onboarding · 目标</span></div>
+    <span style="font-size:8px;color:var(--t3);background:var(--bg3);padding:1px 5px;border-radius:3px">二期</span>
+  </div>
+
+  <!-- ── ACTIVATION ── -->
+  <div class="sidebar-section">ACTIVATION</div>
+  <div class="nav-item" onclick="show('home')" id="nav-home">
+    <div><span class="nav-id">S5</span><span class="nav-label">主看板 Home</span></div>
+  </div>
+  <div class="nav-item" onclick="show('homeempty')" id="nav-homeempty" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#e74c3c">S5e</span><span class="nav-label" style="color:var(--t2)">↳ 空状态引导</span></div>
+    <span class="nav-badge p0">P0</span>
+  </div>
+  <div class="nav-item" onclick="show('addholding')" id="nav-addholding">
+    <div><span class="nav-id">S6</span><span class="nav-label">添加持仓</span></div>
+  </div>
+  <div class="nav-item" onclick="show('aiscan')" id="nav-aiscan" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#e74c3c">S6a</span><span class="nav-label" style="color:var(--t2)">↳ AI扫描 · 上传</span></div>
+    <span class="nav-badge p0">P0</span>
+  </div>
+  <div class="nav-item" onclick="show('aiscan2')" id="nav-aiscan2" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#e74c3c">S6a-2</span><span class="nav-label" style="color:var(--t2)">↳ AI识别中</span></div>
+    <span class="nav-badge p0">P0</span>
+  </div>
+  <div class="nav-item" onclick="show('aiscan3')" id="nav-aiscan3" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#e74c3c">S6a-3</span><span class="nav-label" style="color:var(--t2)">↳ 识别结果确认</span></div>
+    <span class="nav-badge p0">P0</span>
+  </div>
+  <div class="nav-item" onclick="show('stocksearch')" id="nav-stocksearch" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#e74c3c">S6s</span><span class="nav-label" style="color:var(--t2)">↳ 股票搜索</span></div>
+    <span class="nav-badge p0">P0</span>
+  </div>
+  <div class="nav-item" onclick="show('addconfirm')" id="nav-addconfirm" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#e74c3c">S6c</span><span class="nav-label" style="color:var(--t2)">↳ 添加成功确认</span></div>
+    <span class="nav-badge p0">P0</span>
+  </div>
+  <div class="nav-item" onclick="show('holdings')" id="nav-holdings">
+    <div><span class="nav-id">S7</span><span class="nav-label">持仓列表</span></div>
+  </div>
+  <div class="nav-item" onclick="show('editholding')" id="nav-editholding" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#e74c3c">S13a</span><span class="nav-label" style="color:var(--t2)">↳ 编辑持仓</span></div>
+    <span class="nav-badge p0">P0</span>
+  </div>
+  <div class="nav-item" onclick="show('deleteholding')" id="nav-deleteholding" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#e74c3c">S13b</span><span class="nav-label" style="color:var(--t2)">↳ 删除确认</span></div>
+    <span class="nav-badge p0">P0</span>
+  </div>
+  <div class="nav-item" onclick="show('fi')" id="nav-fi">
+    <div><span class="nav-id">S8</span><span class="nav-label">财务自由追踪</span></div>
+  </div>
+
+  <!-- ── RETENTION ── -->
+  <div class="sidebar-section">RETENTION</div>
+  <div class="nav-item" onclick="show('calendar')" id="nav-calendar">
+    <div><span class="nav-id">S9</span><span class="nav-label">分红日历</span></div>
+  </div>
+  <div class="nav-item" onclick="show('notif')" id="nav-notif">
+    <div><span class="nav-id">S10</span><span class="nav-label">消息通知</span></div>
+    <span class="nav-badge">NEW</span>
+  </div>
+  <div class="nav-item" onclick="show('notifperm')" id="nav-notifperm" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#EF9F27">S10p</span><span class="nav-label" style="color:var(--t2)">↳ 通知权限申请</span></div>
+    <span class="nav-badge" style="background:rgba(239,159,39,.18);color:#EF9F27;border-color:rgba(239,159,39,.3)">P1</span>
+  </div>
+  <div class="nav-item" onclick="show('streak')" id="nav-streak">
+    <div><span class="nav-id">S11</span><span class="nav-label">成就打卡</span></div>
+    <span class="nav-badge">NEW</span>
+  </div>
+
+  <!-- ── TOOLS ── -->
+  <div class="nav-item" onclick="show('achieveunlock')" id="nav-achieveunlock" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#888780">S11u</span><span class="nav-label" style="color:var(--t2)">↳ 成就解锁庆祝</span></div>
+    <span class="nav-badge" style="background:rgba(136,135,128,.18);color:#888780;border-color:rgba(136,135,128,.3)">P2</span>
+  </div>
+  <div class="sidebar-section">TOOLS</div>
+  <div class="nav-item" onclick="show('discover')" id="nav-discover">
+    <div><span class="nav-id">S12</span><span class="nav-label">发现工具</span></div>
+  </div>
+  <div class="nav-item" onclick="show('stockprofile')" id="nav-stockprofile" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#EF9F27">S12a</span><span class="nav-label" style="color:var(--t2)">↳ 个股档案</span></div>
+    <span class="nav-badge" style="background:rgba(239,159,39,.18);color:#EF9F27;border-color:rgba(239,159,39,.3)">P1</span>
+  </div>
+  <div class="nav-item" onclick="show('dripcalc')" id="nav-dripcalc" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#EF9F27">S12b</span><span class="nav-label" style="color:var(--t2)">↳ DRIP 模拟器</span></div>
+    <span class="nav-badge" style="background:rgba(239,159,39,.18);color:#EF9F27;border-color:rgba(239,159,39,.3)">P1</span>
+  </div>
+  <div class="nav-item" onclick="show('taxcalc')" id="nav-taxcalc" style="padding-left:24px">
+    <div><span class="nav-id" style="color:#EF9F27">S12c</span><span class="nav-label" style="color:var(--t2)">↳ 税后计算器</span></div>
+    <span class="nav-badge" style="background:rgba(239,159,39,.18);color:#EF9F27;border-color:rgba(239,159,39,.3)">P1</span>
+  </div>
+  <div class="nav-item" onclick="show('settings')" id="nav-settings">
+    <div><span class="nav-id">S13</span><span class="nav-label">设置 / 我的</span></div>
+  </div>
+</nav>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main class="main">
+  <!-- Flow path hint bar -->
+  <div id="flow-hint" style="width:100%;max-width:680px;background:var(--bg2);border:.5px solid var(--bd2);border-radius:10px;padding:8px 14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <span style="font-size:9px;color:var(--t3);font-weight:500;letter-spacing:.06em;text-transform:uppercase;flex-shrink:0">用户路径</span>
+    <div id="flow-path" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:10px;color:var(--t2)">
+      <span style="color:var(--gold)">S1 启动页</span>
+    </div>
+    <div style="margin-left:auto;font-size:9px;color:var(--t3)">点击左侧导航切换屏幕</div>
+  </div>
+
+<!-- S1 Splash -->
+<div id="s-splash" class="screen active">
+  <div class="screen-header">
+    <div class="screen-tag">S1 · ACQUISITION</div>
+    <div class="screen-title">启动页</div>
+    <div class="screen-sub">App 冷启动第一印象 · 品牌锚点</div>
+  </div>
+  <div class="phone-wrap"><div class="phone">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc">
+      <div class="splash-inner">
+        <div class="splash-glow"></div>
+        <div class="splash-icon">💰</div>
+        <div class="splash-name">DiviFlow</div>
+        <div class="splash-sub">让每一笔分红，推进你的财务自由</div>
+        <div class="splash-line"></div>
+        <div class="splash-loading">
+          <div class="splash-dot on"></div>
+          <div class="splash-dot on"></div>
+          <div class="splash-dot"></div>
+        </div>
+        <div class="splash-hint" onclick="show('signin')" style="cursor:pointer">点击任意处继续 →</div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S2 Sign In -->
+<div id="s-signin" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S2 · ACQUISITION</div>
+    <div class="screen-title">登录</div>
+    <div class="screen-sub">手机号 / 微信 / 苹果一键登录</div>
+  </div>
+  <div class="phone-wrap"><div class="phone">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc">
+      <div class="auth-inner">
+        <div class="auth-logo">
+          <div class="icon">💰</div>
+          <h2>欢迎回来</h2>
+          <p>登录你的 DiviFlow 账户</p>
+        </div>
+        <div class="auth-tab">
+          <div class="auth-tab-btn on">登录</div>
+          <div class="auth-tab-btn">注册</div>
+        </div>
+        <div class="field-label">手机号</div>
+        <div class="field"><span class="field-val">+86 138 8888 8888</span></div>
+        <div class="field-label">密码</div>
+        <div class="field"><span class="field-val">••••••••</span></div>
+        <div onclick="show('home')" class="btn-gold">登录</div>
+        <div class="auth-or">— 或者 —</div>
+        <div class="auth-social">
+          <div onclick="show('home')" class="social-btn" style="cursor:pointer">💬 微信登录</div>
+          <div onclick="show('home')" class="social-btn" style="cursor:pointer"> 苹果登录</div>
+        </div>
+        <div class="auth-link">还没有账户？<span onclick="show('register')" style="cursor:pointer">立即注册</span></div>
+        <div class="auth-link" style="margin-top:6px"><span onclick="show('resetpwd')" style="cursor:pointer">忘记密码 →</span></div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S3 Register -->
+<div id="s-register" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S3 · ACQUISITION</div>
+    <div class="screen-title">注册</div>
+    <div class="screen-sub">新用户快速开户 · 30秒完成</div>
+  </div>
+  <div class="phone-wrap"><div class="phone">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc">
+      <div class="auth-inner">
+        <div class="auth-logo">
+          <div class="icon">💰</div>
+          <h2>创建账户</h2>
+          <p>开始追踪你的分红收益</p>
+        </div>
+        <div class="auth-tab">
+          <div class="auth-tab-btn">登录</div>
+          <div class="auth-tab-btn on">注册</div>
+        </div>
+        <div class="field-label">手机号</div>
+        <div class="field focus"><span class="field-val">+86 138 8888 8888</span></div>
+        <div class="field-label">验证码</div>
+        <div class="field" style="display:flex;justify-content:space-between;align-items:center">
+          <span class="placeholder" style="color:var(--t3);font-size:12px">输入6位验证码</span>
+          <span style="font-size:10px;color:var(--gold)">发送验证码</span>
+        </div>
+        <div class="field-label">设置密码</div>
+        <div class="field"><span class="placeholder" style="color:var(--t3);font-size:12px">至少8位，含字母和数字</span></div>
+        <div onclick="show('home')" class="btn-gold">注册并开始</div>
+        <div class="auth-or">— 或者 —</div>
+        <div class="auth-social">
+          <div onclick="show('home')" class="social-btn" style="cursor:pointer">💬 微信一键注册</div>
+        </div>
+        <div style="font-size:9px;color:var(--t3);text-align:center;margin-top:10px;line-height:1.5">注册即同意<span style="color:var(--gold)">用户协议</span>和<span style="color:var(--gold)">隐私政策</span></div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S4a Onboarding Region -->
+<div id="s-ob1" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S4a · ACQUISITION</div>
+    <div class="screen-title">Onboarding · 地区选择</div>
+    <div class="screen-sub">税率、汇率、数据源配置依赖地区</div>
+  </div>
+  <div class="phone-wrap"><div class="phone">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc">
+      <div class="ob-inner">
+        <div class="ob-prog" style="padding-top:16px">
+          <div class="ob-prog-bar done"></div>
+          <div class="ob-prog-bar active"></div>
+          <div class="ob-prog-bar"></div>
+        </div>
+        <div class="ob-content">
+          <div class="ob-emoji">🌏</div>
+          <div class="ob-title">你主要在哪里投资？</div>
+          <div class="ob-sub">我们根据你的地区配置<br>正确的税率、汇率和数据源</div>
+          <div class="ob-options">
+            <div class="ob-option sel">
+              <span class="ob-option-text">🇨🇳 中国大陆 A股为主</span>
+              <div class="ob-option-check">✓</div>
+            </div>
+            <div class="ob-option">
+              <span class="ob-option-text">🇭🇰 香港 港股/港股通</span>
+              <div class="ob-option-check"></div>
+            </div>
+            <div class="ob-option">
+              <span class="ob-option-text">🇦🇪 UAE / GCC 市场</span>
+              <div class="ob-option-check"></div>
+            </div>
+            <div class="ob-option">
+              <span class="ob-option-text">🌐 多市场混合持仓</span>
+              <div class="ob-option-check"></div>
+            </div>
+          </div>
+        </div>
+        <div class="ob-footer">
+          <div class="ob-btn-skip" onclick="show('homeempty')">跳过</div>
+          <div class="ob-btn-next" onclick="show('ob2')">下一步 →</div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S4b Onboarding Asset -->
+<div id="s-ob2" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S4b · ACQUISITION</div>
+    <div class="screen-title">Onboarding · 当前资产</div>
+    <div class="screen-sub">评估分红潜力 · 个性化加速路径</div>
+  </div>
+  <div class="phone-wrap"><div class="phone">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc">
+      <div class="ob-inner">
+        <div class="ob-prog" style="padding-top:16px">
+          <div class="ob-prog-bar done"></div>
+          <div class="ob-prog-bar done"></div>
+          <div class="ob-prog-bar active"></div>
+        </div>
+        <div class="ob-content">
+          <div class="ob-emoji">💼</div>
+          <div class="ob-title">你目前的持仓规模？</div>
+          <div class="ob-sub">用于评估分红潜力<br>和给你个性化的增长路径</div>
+          <div class="ob-options">
+            <div class="ob-option">
+              <span class="ob-option-text">🌱 还没开始 · 准备入场</span>
+              <div class="ob-option-check"></div>
+            </div>
+            <div class="ob-option sel">
+              <span class="ob-option-text">💰 5万–50万 起步阶段</span>
+              <div class="ob-option-check">✓</div>
+            </div>
+            <div class="ob-option">
+              <span class="ob-option-text">🏦 50万–200万 成长阶段</span>
+              <div class="ob-option-check"></div>
+            </div>
+            <div class="ob-option">
+              <span class="ob-option-text">🎯 200万+ 成熟阶段</span>
+              <div class="ob-option-check"></div>
+            </div>
+          </div>
+        </div>
+        <div class="ob-footer">
+          <div class="ob-btn-skip" onclick="show('homeempty')">跳过</div>
+          <div class="ob-btn-next" onclick="show('ob3')">下一步 →</div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S4c Onboarding Goal -->
+<div id="s-ob3" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S4c · ACQUISITION</div>
+    <div class="screen-title">Onboarding · 月支出目标</div>
+    <div class="screen-sub">设定财务自由进度条基准</div>
+  </div>
+  <div class="phone-wrap"><div class="phone">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc">
+      <div class="ob-inner">
+        <div class="ob-prog" style="padding-top:16px">
+          <div class="ob-prog-bar done"></div>
+          <div class="ob-prog-bar done"></div>
+          <div class="ob-prog-bar done"></div>
+        </div>
+        <div class="ob-content">
+          <div class="ob-emoji">🎯</div>
+          <div class="ob-title">你的月生活支出是？</div>
+          <div class="ob-sub">当分红能覆盖这个数字<br>你就实现了财务自由</div>
+          <div class="ob-options">
+            <div class="ob-option">
+              <span class="ob-option-text">💚 5,000元以下</span>
+              <div class="ob-option-check"></div>
+            </div>
+            <div class="ob-option">
+              <span class="ob-option-text">💛 5,000–15,000元</span>
+              <div class="ob-option-check"></div>
+            </div>
+            <div class="ob-option sel">
+              <span class="ob-option-text">🧡 15,000–30,000元</span>
+              <div class="ob-option-check">✓</div>
+            </div>
+            <div class="ob-option">
+              <span class="ob-option-text">❤️ 30,000元以上</span>
+              <div class="ob-option-check"></div>
+            </div>
+          </div>
+        </div>
+        <div class="ob-footer">
+          <div class="ob-btn-skip" onclick="show('homeempty')">跳过</div>
+          <div class="ob-btn-next" onclick="show('homeempty')">开始使用 🚀</div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S5 Home -->
+<div id="s-home" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S5 · ACTIVATION</div>
+    <div class="screen-title">主看板 Home</div>
+    <div class="screen-sub">Live price · portfolio summary · quick actions</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+      <div class="greet">
+        <div class="av">Y</div>
+        <div><div class="gn">你好，收息人</div><div class="gs">已持股15天 · 比90%的人更早行动</div></div>
+        <div class="probadge">PRO</div>
+      </div>
+      <div class="card pcard">
+        <div class="ci">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+            <div style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--t2)"><div class="ldot"></div>中国平安 实时息率</div>
+            <span style="font-size:9px;color:var(--t3)">A股</span>
+          </div>
+          <div style="font-size:32px;font-weight:700;color:var(--gold2);letter-spacing:-.5px;line-height:1">4.13<span style="font-size:15px;color:var(--gold);font-weight:500">%</span></div>
+          <div class="pchg">▲ +0.08% 今日</div>
+          <svg width="100%" height="30" viewBox="0 0 240 30" preserveAspectRatio="none" style="margin:7px 0 5px;display:block">
+            <defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c8a84b" stop-opacity=".22"/><stop offset="100%" stop-color="#c8a84b" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0,22 C18,20 36,18 60,14 C80,10 98,12 118,8 C140,4 158,6 180,3 C198,1 220,2 240,0" fill="none" stroke="#c8a84b" stroke-width="1.4"/>
+            <path d="M0,22 C18,20 36,18 60,14 C80,10 98,12 118,8 C140,4 158,6 180,3 C198,1 220,2 240,0 L240,30 L0,30Z" fill="url(#gg)"/>
+          </svg>
+          <div class="pills"><div class="pill on">平安A</div><div class="pill">神华</div><div class="pill">工行</div><div class="pill">ETF</div></div>
+        </div>
+      </div>
+      <div class="card portcard">
+        <div class="ci">
+          <div class="pvlbl">预测年度分红（税前）</div>
+          <div class="pv">¥2,476</div>
+          <div class="pret">▲ 覆盖 12.4% 生活支出</div>
+          <div class="psg">
+            <div class="ps"><div class="k">今年已收</div><div class="v">¥0</div></div>
+            <div class="ps"><div class="k">成本息率</div><div class="v g">4.13%</div></div>
+            <div class="ps"><div class="k">总成本</div><div class="v">¥6万</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="st">快捷操作</div>
+      <div class="qr">
+        <div onclick="show('addholding')" class="qa p" style="cursor:pointer"><div class="qin">＋</div><div class="qn">添加持仓</div><div class="qs">记录买入</div></div>
+        <div class="qa"><div class="qin">↗</div><div class="qn">记录卖出</div><div class="qs">记录卖出</div></div>
+      </div>
+      <!-- 持仓列表: 竖向紧凑行，最多3行超出折叠 -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px 3px">
+        <div class="st" style="padding:0;margin:0">我的持仓</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span onclick="show('addholding')" style="font-size:11px;color:var(--gold);cursor:pointer;font-weight:500">+ 添加</span>
+          <span onclick="show('holdings')" style="font-size:11px;color:var(--t2);cursor:pointer">全部 ›</span>
+        </div>
+      </div>
+      <!-- 持仓行列表容器 -->
+      <div style="margin:4px 10px 0;background:var(--bg2);border:.5px solid var(--bd2);border-radius:12px;overflow:hidden">
+        <!-- 列头 -->
+        <div style="display:grid;grid-template-columns:1fr 70px 68px;padding:6px 12px 5px;border-bottom:.5px solid var(--bd)">
+          <span style="font-size:9px;color:var(--t3)">股票</span>
+          <span style="font-size:9px;color:var(--t3);text-align:right">息率</span>
+          <span style="font-size:9px;color:var(--t3);text-align:right">预测分红/年</span>
+        </div>
+        <!-- 行 1: 中国平安 -->
+        <div onclick="show('holdings')" style="display:grid;grid-template-columns:1fr 70px 68px;align-items:center;padding:9px 12px;border-bottom:.5px solid var(--bd);cursor:pointer">
+          <div style="display:flex;align-items:center;gap:8px;min-width:0">
+            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#2a2510,#1a1808);border:.5px solid rgba(200,168,75,.2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--t1);flex-shrink:0;font-weight:500">中</div>
+            <div style="min-width:0">
+              <div style="font-size:12px;font-weight:500;color:var(--t0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">中国平安<span style="font-size:8px;background:rgba(200,168,75,.1);color:var(--gold);border:.5px solid rgba(200,168,75,.18);padding:1px 3px;border-radius:3px;margin-left:4px">A</span></div>
+              <div style="font-size:9px;color:var(--t2);margin-top:1px">1000股 · ¥60.00</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:600;color:var(--green)">4.13%</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:600;color:var(--gold2)">¥2,477</div>
+          </div>
+        </div>
+        <!-- 行 2: 中国神华 (淡色示意多持仓) -->
+        <div style="display:grid;grid-template-columns:1fr 70px 68px;align-items:center;padding:9px 12px;border-bottom:.5px solid var(--bd);opacity:.5">
+          <div style="display:flex;align-items:center;gap:8px;min-width:0">
+            <div style="width:28px;height:28px;border-radius:8px;background:var(--bg3);border:.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--t2);flex-shrink:0;font-weight:500">神</div>
+            <div style="min-width:0">
+              <div style="font-size:12px;font-weight:500;color:var(--t0)">中国神华<span style="font-size:8px;background:rgba(200,168,75,.1);color:var(--gold);border:.5px solid rgba(200,168,75,.18);padding:1px 3px;border-radius:3px;margin-left:4px">A</span></div>
+              <div style="font-size:9px;color:var(--t2);margin-top:1px">800股 · ¥38.50</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:600;color:var(--green)">7.14%</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:600;color:var(--gold2)">¥2,200</div>
+          </div>
+        </div>
+        <!-- 行 3: 工商银行 (淡色示意) -->
+        <div style="display:grid;grid-template-columns:1fr 70px 68px;align-items:center;padding:9px 12px;border-bottom:.5px solid var(--bd);opacity:.35">
+          <div style="display:flex;align-items:center;gap:8px;min-width:0">
+            <div style="width:28px;height:28px;border-radius:8px;background:var(--bg3);border:.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--t2);flex-shrink:0;font-weight:500">工</div>
+            <div style="min-width:0">
+              <div style="font-size:12px;font-weight:500;color:var(--t0)">工商银行<span style="font-size:8px;background:rgba(200,168,75,.1);color:var(--gold);border:.5px solid rgba(200,168,75,.18);padding:1px 3px;border-radius:3px;margin-left:4px">A</span></div>
+              <div style="font-size:9px;color:var(--t2);margin-top:1px">5000股 · ¥5.30</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:600;color:var(--green)">5.72%</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:600;color:var(--gold2)">¥4,163</div>
+          </div>
+        </div>
+        <!-- 超出折叠行: +N只 查看全部 -->
+        <div onclick="show('holdings')" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;cursor:pointer">
+          <span style="font-size:10px;color:var(--t2)">还有 2 只持仓</span>
+          <span style="font-size:10px;color:var(--gold)">查看全部 ›</span>
+        </div>
+      </div>
+      <!-- 集中度提示 -->
+      <div style="margin:5px 10px 4px;font-size:9px;color:var(--gold)">⚠ 金融板块占比 72% · 建议分散配置</div>
+    </div>
+    <div class="tb">
+      <div class="ti on"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S6 Add Holding -->
+<div id="s-addholding" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S6 · ACTIVATION</div>
+    <div class="screen-title">添加持仓</div>
+    <div class="screen-sub">Bottom sheet · AI 扫描 · 点击股票字段进入搜索页</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px)">
+      <!-- Blurred background -->
+      <div style="background:var(--bg0);padding:12px;opacity:.35;filter:blur(1px)">
+        <div style="background:var(--bg2);border-radius:12px;height:80px;margin-bottom:8px"></div>
+        <div style="background:var(--bg2);border-radius:12px;height:60px"></div>
+      </div>
+      <!-- Bottom sheet (no mode tabs) -->
+      <div class="addh-inner" style="border-radius:20px 20px 0 0;position:relative;margin-top:-10px">
+        <div class="addh-handle"></div>
+        <!-- Header: title + market selector + AI scan -->
+        <div style="padding:10px 16px 0;display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:17px;font-weight:500;color:var(--t0)">添加持仓</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="addh-mode-sel">A股 ▾</div>
+            <div class="addh-ai" onclick="show('aiscan')" style="cursor:pointer;margin:0">✦ AI 扫描</div>
+          </div>
+        </div>
+
+        <!-- Stock selector field — tapping opens search -->
+        <div style="padding:14px 16px 0">
+          <div style="font-size:9px;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px">股票代码 / 名称</div>
+          <div onclick="show('stocksearch')" style="background:var(--bg3);border:.5px solid rgba(200,168,75,.35);border-radius:11px;padding:11px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;overflow:hidden">
+            <span style="font-size:13px;color:var(--t3);flex-shrink:0">🔍</span>
+            <span style="font-size:12px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">搜索代码 / 拼音 / 名称</span>
+            <span style="font-size:10px;color:var(--t3);flex-shrink:0">›</span>
+          </div>
+          <div style="font-size:9px;color:var(--t3);margin-top:4px;padding-left:2px">支持：601318 · zgpa · 中国平安</div>
+        </div>
+
+        <!-- Number / quantity display -->
+        <div style="display:flex;flex-direction:column;align-items:center;padding:14px 0 10px">
+          <div style="font-size:42px;font-weight:300;color:var(--t3);letter-spacing:-1px;line-height:1">0</div>
+          <div style="font-size:12px;color:var(--t2);margin-top:4px">股数</div>
+        </div>
+
+        <!-- Remaining fields -->
+        <div class="field-group">
+          <div class="fl">持仓数量（股）</div>
+          <div class="fv"><span class="placeholder">输入持仓数量</span><span class="chevron">›</span></div>
+        </div>
+        <div class="field-group">
+          <div class="fl">买入均价（元 / 股）</div>
+          <div class="fv"><span class="placeholder">输入买入均价</span><span class="chevron">›</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 10px">
+          <div>
+            <div class="fl" style="margin-bottom:5px">买入日期</div>
+            <div class="fv" style="padding:10px 12px"><span style="font-size:12px;color:var(--t1)">2026-04-14</span><span class="chevron">▾</span></div>
+          </div>
+          <div>
+            <div class="fl" style="margin-bottom:5px">持仓账户</div>
+            <div class="fv" style="padding:10px 12px"><span style="font-size:12px;color:var(--t1)">华泰证券</span><span class="chevron">▾</span></div>
+          </div>
+        </div>
+        <div style="padding:0 16px">
+          <div onclick="show('addconfirm')" class="addh-cta">确认添加</div>
+        </div>
+        <div style="height:18px"></div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+
+
+
+<!-- S6a AI Scan -->
+<div id="s-aiscan" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S6a · P0补全 · ACTIVATION</div>
+    <div class="screen-title">AI 扫描持仓截图</div>
+    <div class="screen-sub">S6 添加持仓 → 点击"✦ AI 扫描" → 三步流程：上传 → 识别 → 确认</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px);background:var(--bg1)">
+
+      <!-- Step indicator -->
+      <div style="padding:14px 16px 10px;border-bottom:.5px solid var(--bd)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div onclick="show('addholding')" style="font-size:13px;color:var(--t2);cursor:pointer">✕</div>
+          <div style="font-size:13px;font-weight:500;color:var(--t0)">AI 扫描持仓截图</div>
+          <div style="width:20px"></div>
+        </div>
+        <!-- Steps -->
+        <div style="display:flex;align-items:center;gap:0">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:24px;height:24px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--bg0)">1</div>
+            <div style="font-size:9px;color:var(--gold);font-weight:500">上传图片</div>
+          </div>
+          <div style="flex:1;height:1.5px;background:var(--bd2);margin:0 6px;margin-bottom:14px"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:24px;height:24px;border-radius:50%;background:var(--bg3);border:.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--t3)">2</div>
+            <div style="font-size:9px;color:var(--t3)">AI 识别</div>
+          </div>
+          <div style="flex:1;height:1.5px;background:var(--bd2);margin:0 6px;margin-bottom:14px"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:24px;height:24px;border-radius:50%;background:var(--bg3);border:.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--t3)">3</div>
+            <div style="font-size:9px;color:var(--t3)">确认添加</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1: Upload area -->
+      <div style="padding:16px">
+        <!-- Upload zone -->
+        <div style="border:1.5px dashed rgba(200,168,75,.35);border-radius:14px;padding:32px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;background:rgba(200,168,75,.03);margin-bottom:14px">
+          <div style="width:52px;height:52px;background:rgba(200,168,75,.1);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px">📸</div>
+          <div style="font-size:13px;font-weight:500;color:var(--t0);margin-bottom:6px">上传券商持仓截图</div>
+          <div style="font-size:10px;color:var(--t2);line-height:1.6;margin-bottom:16px">支持华泰、中信、国泰君安等主流券商<br>APP 持仓页面截图</div>
+          <div onclick="show('aiscan2')" style="background:linear-gradient(135deg,#8a7235,#e8c96a);color:var(--bg0);font-size:12px;font-weight:700;padding:11px 24px;border-radius:10px;cursor:pointer">从相册选取</div>
+        </div>
+
+        <!-- Camera option -->
+        <div onclick="show('aiscan2')" style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:10px">
+          <div style="width:36px;height:36px;background:rgba(200,168,75,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📷</div>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--t0)">直接拍摄</div>
+            <div style="font-size:10px;color:var(--t2)">对准持仓页面拍照识别</div>
+          </div>
+          <div style="margin-left:auto;font-size:12px;color:var(--t3)">›</div>
+        </div>
+
+        <!-- Supported brokers -->
+        <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:12px;padding:12px 14px">
+          <div style="font-size:9px;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px">支持的券商</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span style="font-size:10px;background:var(--bg3);color:var(--t1);padding:4px 9px;border-radius:5px">华泰证券</span>
+            <span style="font-size:10px;background:var(--bg3);color:var(--t1);padding:4px 9px;border-radius:5px">中信证券</span>
+            <span style="font-size:10px;background:var(--bg3);color:var(--t1);padding:4px 9px;border-radius:5px">国泰君安</span>
+            <span style="font-size:10px;background:var(--bg3);color:var(--t1);padding:4px 9px;border-radius:5px">招商证券</span>
+            <span style="font-size:10px;background:var(--bg3);color:var(--t1);padding:4px 9px;border-radius:5px">东方财富</span>
+            <span style="font-size:10px;background:var(--bg3);color:var(--t2);padding:4px 9px;border-radius:5px">+20家</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div></div>
+</div>
+
+<!-- S6a-2 AI Scanning (recognizing state) -->
+<div id="s-aiscan2" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S6a-2 · ACTIVATION</div>
+    <div class="screen-title">AI 识别中</div>
+    <div class="screen-sub">图片上传完成 → AI 正在识别持仓数据</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px);background:var(--bg1)">
+
+      <!-- Step indicator: step 2 active -->
+      <div style="padding:14px 16px 10px;border-bottom:.5px solid var(--bd)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="width:20px"></div>
+          <div style="font-size:13px;font-weight:500;color:var(--t0)">AI 扫描持仓截图</div>
+          <div style="width:20px"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:24px;height:24px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--bg0)">✓</div>
+            <div style="font-size:9px;color:var(--green)">已上传</div>
+          </div>
+          <div style="flex:1;height:1.5px;background:var(--gold);margin:0 6px;margin-bottom:14px"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:24px;height:24px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--bg0)">2</div>
+            <div style="font-size:9px;color:var(--gold);font-weight:500">AI 识别</div>
+          </div>
+          <div style="flex:1;height:1.5px;background:var(--bd2);margin:0 6px;margin-bottom:14px"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:24px;height:24px;border-radius:50%;background:var(--bg3);border:.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--t3)">3</div>
+            <div style="font-size:9px;color:var(--t3)">确认添加</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview image placeholder + scanning animation -->
+      <div style="margin:16px;border-radius:12px;overflow:hidden;position:relative">
+        <!-- Simulated screenshot -->
+        <div style="background:linear-gradient(160deg,#1a1814,#0e0d0a);border:.5px solid var(--bd2);border-radius:12px;padding:16px">
+          <div style="font-size:9px;color:var(--t3);margin-bottom:10px;text-align:center">持仓截图预览</div>
+          <!-- Fake broker UI rows -->
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:.5px solid var(--bd)">
+            <div>
+              <div style="font-size:11px;color:var(--t0)">中国平安</div>
+              <div style="font-size:9px;color:var(--t2)">601318</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:11px;color:var(--t0)">1000</div>
+              <div style="font-size:9px;color:var(--t2)">¥60.00</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:.5px solid var(--bd)">
+            <div>
+              <div style="font-size:11px;color:var(--t0)">中国神华</div>
+              <div style="font-size:9px;color:var(--t2)">601088</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:11px;color:var(--t0)">800</div>
+              <div style="font-size:9px;color:var(--t2)">¥38.50</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0">
+            <div>
+              <div style="font-size:11px;color:var(--t0)">工商银行</div>
+              <div style="font-size:9px;color:var(--t2)">601398</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:11px;color:var(--t0)">5000</div>
+              <div style="font-size:9px;color:var(--t2)">¥5.30</div>
+            </div>
+          </div>
+          <!-- Scanning overlay line -->
+          <div style="position:absolute;top:0;left:0;right:0;bottom:0;border-radius:12px;overflow:hidden;pointer-events:none">
+            <div style="position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(200,168,75,.8),transparent);animation:scan 1.8s ease-in-out infinite;top:30%"></div>
+          </div>
+        </div>
+        <style>@keyframes scan{0%{top:10%}100%{top:90%}}</style>
+      </div>
+
+      <!-- Status -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:10px 16px 16px;text-align:center">
+        <div style="font-size:14px;font-weight:500;color:var(--t0);margin-bottom:4px">正在识别持仓数据…</div>
+        <div style="font-size:10px;color:var(--t2);margin-bottom:16px">AI 正在分析图片中的股票代码、数量和成本</div>
+        <!-- Animated dots -->
+        <div style="display:flex;gap:6px">
+          <div style="width:7px;height:7px;border-radius:50%;background:var(--gold);animation:dot 1.2s ease-in-out infinite"></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:var(--gold);animation:dot 1.2s ease-in-out .4s infinite"></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:var(--gold);animation:dot 1.2s ease-in-out .8s infinite"></div>
+        </div>
+        <style>@keyframes dot{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}</style>
+      </div>
+
+      <!-- Skip to result (prototype shortcut) -->
+      <div style="margin:0 16px">
+        <div onclick="show('aiscan3')" style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:11px;padding:12px;text-align:center;font-size:12px;color:var(--t2);cursor:pointer">识别完成 → 查看结果</div>
+      </div>
+
+    </div>
+  </div></div>
+</div>
+
+<!-- S6a-3 AI Scan Result (confirm state) -->
+<div id="s-aiscan3" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S6a-3 · ACTIVATION</div>
+    <div class="screen-title">AI 识别结果确认</div>
+    <div class="screen-sub">识别完成 → 用户逐条核对 / 修改 → 一键批量添加</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px);background:var(--bg1)">
+
+      <!-- Step indicator: step 3 active -->
+      <div style="padding:14px 16px 10px;border-bottom:.5px solid var(--bd)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div onclick="show('aiscan2')" style="font-size:13px;color:var(--t2);cursor:pointer">‹</div>
+          <div style="font-size:13px;font-weight:500;color:var(--t0)">AI 扫描持仓截图</div>
+          <div style="width:20px"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:24px;height:24px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--bg0)">✓</div>
+            <div style="font-size:9px;color:var(--green)">已上传</div>
+          </div>
+          <div style="flex:1;height:1.5px;background:var(--green);margin:0 6px;margin-bottom:14px"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:24px;height:24px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--bg0)">✓</div>
+            <div style="font-size:9px;color:var(--green)">已识别</div>
+          </div>
+          <div style="flex:1;height:1.5px;background:var(--gold);margin:0 6px;margin-bottom:14px"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:24px;height:24px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--bg0)">3</div>
+            <div style="font-size:9px;color:var(--gold);font-weight:500">确认添加</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success banner -->
+      <div style="margin:10px 14px 4px;background:rgba(200,168,75,.07);border:.5px solid rgba(200,168,75,.2);border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:14px">✓</span>
+        <div>
+          <div style="font-size:11px;font-weight:500;color:var(--green)">识别成功 · 共检测到 3 笔持仓</div>
+          <div style="font-size:9px;color:var(--t2)">请核对数据后点击确认添加</div>
+        </div>
+      </div>
+
+      <!-- Recognized holdings list -->
+      <div style="padding:6px 0">
+        <div style="padding:4px 14px 6px;font-size:9px;color:var(--t3);letter-spacing:.04em;text-transform:uppercase">识别结果（可逐条修改）</div>
+
+        <!-- Row 1: normal -->
+        <div style="background:var(--bg2);border-top:.5px solid var(--bd);border-bottom:.5px solid var(--bd);padding:11px 14px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0"></div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+                <span style="font-size:13px;font-weight:500;color:var(--t0)">中国平安</span>
+                <span style="font-size:9px;color:var(--t3)">601318 · A股</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+                <div style="background:var(--bg3);border-radius:6px;padding:5px 7px">
+                  <div style="font-size:8px;color:var(--t3)">股数</div>
+                  <div style="font-size:12px;font-weight:500;color:var(--t0)">1000</div>
+                </div>
+                <div style="background:var(--bg3);border-radius:6px;padding:5px 7px">
+                  <div style="font-size:8px;color:var(--t3)">均价（元）</div>
+                  <div style="font-size:12px;font-weight:500;color:var(--t0)">60.00</div>
+                </div>
+                <div style="background:var(--bg3);border-radius:6px;padding:5px 7px">
+                  <div style="font-size:8px;color:var(--t3)">预测息率</div>
+                  <div style="font-size:12px;font-weight:500;color:var(--green)">4.13%</div>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:10px;color:var(--gold);cursor:pointer;flex-shrink:0">编辑</div>
+          </div>
+        </div>
+
+        <!-- Row 2: normal -->
+        <div style="background:var(--bg2);border-bottom:.5px solid var(--bd);padding:11px 14px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0"></div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+                <span style="font-size:13px;font-weight:500;color:var(--t0)">中国神华</span>
+                <span style="font-size:9px;color:var(--t3)">601088 · A股</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+                <div style="background:var(--bg3);border-radius:6px;padding:5px 7px">
+                  <div style="font-size:8px;color:var(--t3)">股数</div>
+                  <div style="font-size:12px;font-weight:500;color:var(--t0)">800</div>
+                </div>
+                <div style="background:var(--bg3);border-radius:6px;padding:5px 7px">
+                  <div style="font-size:8px;color:var(--t3)">均价（元）</div>
+                  <div style="font-size:12px;font-weight:500;color:var(--t0)">38.50</div>
+                </div>
+                <div style="background:var(--bg3);border-radius:6px;padding:5px 7px">
+                  <div style="font-size:8px;color:var(--t3)">预测息率</div>
+                  <div style="font-size:12px;font-weight:500;color:var(--green)">7.14%</div>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:10px;color:var(--gold);cursor:pointer;flex-shrink:0">编辑</div>
+          </div>
+        </div>
+
+        <!-- Row 3: warning — needs review -->
+        <div style="background:rgba(239,159,39,.04);border-bottom:.5px solid var(--bd);padding:11px 14px;border-left:2.5px solid var(--gold)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0"></div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+                <span style="font-size:13px;font-weight:500;color:var(--t0)">工商银行</span>
+                <span style="font-size:9px;color:var(--t3)">601398 · A股</span>
+              </div>
+              <div style="font-size:9px;color:var(--gold);margin-bottom:5px">⚠ 均价识别不确定，请核对</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+                <div style="background:var(--bg3);border-radius:6px;padding:5px 7px">
+                  <div style="font-size:8px;color:var(--t3)">股数</div>
+                  <div style="font-size:12px;font-weight:500;color:var(--t0)">5000</div>
+                </div>
+                <div style="background:rgba(239,159,39,.12);border:.5px solid rgba(239,159,39,.3);border-radius:6px;padding:5px 7px">
+                  <div style="font-size:8px;color:var(--gold)">均价（元）?</div>
+                  <div style="font-size:12px;font-weight:500;color:var(--gold)">5.30</div>
+                </div>
+                <div style="background:var(--bg3);border-radius:6px;padding:5px 7px">
+                  <div style="font-size:8px;color:var(--t3)">预测息率</div>
+                  <div style="font-size:12px;font-weight:500;color:var(--green)">5.72%</div>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:10px;color:var(--gold);cursor:pointer;flex-shrink:0">编辑</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirm CTA -->
+      <div style="padding:12px 14px 8px">
+        <div onclick="show('addconfirm')" style="background:linear-gradient(135deg,#8a7235,#e8c96a);color:var(--bg0);font-size:13px;font-weight:700;padding:13px;border-radius:12px;text-align:center;cursor:pointer">确认添加全部 3 笔持仓</div>
+        <div onclick="show('addholding')" style="text-align:center;font-size:11px;color:var(--t2);margin-top:10px;cursor:pointer">取消，手动录入</div>
+      </div>
+
+    </div>
+  </div></div>
+</div>
+
+<!-- S6s Stock Search -->
+<div id="s-stocksearch" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S6s · P0补全 · ACTIVATION</div>
+    <div class="screen-title">股票搜索</div>
+    <div class="screen-sub">S6 添加持仓 → 点击股票字段 → 进入此页</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px);background:var(--bg1)">
+
+      <!-- Search bar — 仅搜索框 + 取消 -->
+      <div style="padding:12px 14px 10px;background:var(--bg1);border-bottom:.5px solid var(--bd)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="flex:1;background:var(--bg3);border:.5px solid rgba(200,168,75,.3);border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:8px">
+            <span style="font-size:14px;color:var(--t2);flex-shrink:0">🔍</span>
+            <span id="search-display" style="font-size:13px;color:var(--t0);font-weight:400;white-space:nowrap">zgpa<span style="border-right:1.5px solid var(--gold);margin-left:1px">&nbsp;</span></span>
+          </div>
+          <div onclick="show('addholding')" style="font-size:12px;color:var(--t2);cursor:pointer;flex-shrink:0;padding:0 2px">取消</div>
+        </div>
+      </div>
+
+      <!-- Search results -->
+      <div style="padding:8px 0">
+        <div style="padding:4px 14px 6px;font-size:9px;color:var(--t3);letter-spacing:.04em;text-transform:uppercase">"zgpa" 的匹配结果</div>
+
+        <!-- Result 1 — exact match highlighted -->
+        <div onclick="show('addholding')" style="display:flex;align-items:center;gap:11px;padding:12px 14px;border-bottom:.5px solid var(--bd);cursor:pointer;background:rgba(200,168,75,.04)">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#1e1c14,#141210);border:1px solid rgba(200,168,75,.35);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--t1);flex-shrink:0;font-weight:500">中</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <span style="font-size:13px;font-weight:500;color:var(--t0)">中国平安</span>
+              <span style="font-size:8px;background:rgba(200,168,75,.12);color:var(--gold);border:.5px solid rgba(200,168,75,.2);padding:1px 5px;border-radius:3px">A股</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:10px;color:var(--t2)">601318</span>
+              <span style="font-size:10px;color:var(--t3)">ZGPA · 沪市主板</span>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:13px;font-weight:500;color:var(--t0)">47.84</div>
+            <div style="font-size:9px;color:var(--green)">▲ +0.42%</div>
+          </div>
+          <div style="font-size:9px;color:var(--green);margin-left:4px">股息 4.13%</div>
+        </div>
+
+        <!-- Result 2 -->
+        <div onclick="show('addholding')" style="display:flex;align-items:center;gap:11px;padding:12px 14px;border-bottom:.5px solid var(--bd);cursor:pointer">
+          <div style="width:36px;height:36px;border-radius:10px;background:var(--bg3);border:.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--t2);flex-shrink:0;font-weight:500">太</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <span style="font-size:13px;font-weight:500;color:var(--t0)">中国太平洋保险</span>
+              <span style="font-size:8px;background:var(--bg3);color:var(--t2);border:.5px solid var(--bd2);padding:1px 5px;border-radius:3px">A股</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:10px;color:var(--t2)">601601</span>
+              <span style="font-size:10px;color:var(--t3)">ZGTYBY · 沪市主板</span>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:13px;font-weight:500;color:var(--t0)">28.60</div>
+            <div style="font-size:9px;color:var(--neg)">▼ -0.21%</div>
+          </div>
+          <div style="font-size:9px;color:var(--t3);margin-left:4px">股息 2.8%</div>
+        </div>
+
+        <!-- Result 3 -->
+        <div onclick="show('addholding')" style="display:flex;align-items:center;gap:11px;padding:12px 14px;border-bottom:.5px solid var(--bd);cursor:pointer">
+          <div style="width:36px;height:36px;border-radius:10px;background:var(--bg3);border:.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--t2);flex-shrink:0;font-weight:500">国</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <span style="font-size:13px;font-weight:500;color:var(--t0)">中国人寿保险</span>
+              <span style="font-size:8px;background:var(--bg3);color:var(--t2);border:.5px solid var(--bd2);padding:1px 5px;border-radius:3px">A股</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:10px;color:var(--t2)">601628</span>
+              <span style="font-size:10px;color:var(--t3)">ZGRS · 沪市主板</span>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:13px;font-weight:500;color:var(--t0)">35.20</div>
+            <div style="font-size:9px;color:var(--green)">▲ +1.08%</div>
+          </div>
+          <div style="font-size:9px;color:var(--t3);margin-left:4px">股息 3.5%</div>
+        </div>
+      </div>
+
+      <!-- Recent searches -->
+      <div style="padding:10px 14px 6px">
+        <div style="font-size:9px;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px">最近搜索</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <div onclick="show('addholding')" style="background:var(--bg3);border:.5px solid var(--bd2);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--t1);cursor:pointer">中国神华</div>
+          <div onclick="show('addholding')" style="background:var(--bg3);border:.5px solid var(--bd2);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--t1);cursor:pointer">601398</div>
+          <div onclick="show('addholding')" style="background:var(--bg3);border:.5px solid var(--bd2);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--t1);cursor:pointer">gsnkgs</div>
+          <div onclick="show('addholding')" style="background:var(--bg3);border:.5px solid var(--bd2);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--t1);cursor:pointer">工商银行</div>
+        </div>
+      </div>
+
+      <!-- Hot dividend stocks -->
+      <div style="padding:10px 14px 6px">
+        <div style="font-size:9px;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px">高息热门</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <div onclick="show('addholding')" style="background:rgba(200,168,75,.06);border:.5px solid rgba(200,168,75,.18);border-radius:7px;padding:5px 10px;display:flex;flex-direction:column;align-items:center;cursor:pointer">
+            <span style="font-size:11px;color:var(--t0)">中国神华</span>
+            <span style="font-size:10px;color:var(--gold);font-weight:500">7.2%</span>
+          </div>
+          <div onclick="show('addholding')" style="background:rgba(200,168,75,.06);border:.5px solid rgba(200,168,75,.18);border-radius:7px;padding:5px 10px;display:flex;flex-direction:column;align-items:center;cursor:pointer">
+            <span style="font-size:11px;color:var(--t0)">工商银行</span>
+            <span style="font-size:10px;color:var(--gold);font-weight:500">6.1%</span>
+          </div>
+          <div onclick="show('addholding')" style="background:rgba(200,168,75,.06);border:.5px solid rgba(200,168,75,.18);border-radius:7px;padding:5px 10px;display:flex;flex-direction:column;align-items:center;cursor:pointer">
+            <span style="font-size:11px;color:var(--t0)">建设银行</span>
+            <span style="font-size:10px;color:var(--gold);font-weight:500">5.8%</span>
+          </div>
+          <div onclick="show('addholding')" style="background:rgba(200,168,75,.06);border:.5px solid rgba(200,168,75,.18);border-radius:7px;padding:5px 10px;display:flex;flex-direction:column;align-items:center;cursor:pointer">
+            <span style="font-size:11px;color:var(--t0)">长江电力</span>
+            <span style="font-size:10px;color:var(--gold);font-weight:500">5.2%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Keyboard simulator -->
+      <div style="background:var(--bg3);border-top:.5px solid var(--bd);padding:8px 4px 4px">
+        <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-bottom:3px">
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">q</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">w</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">e</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">r</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">t</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">y</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">u</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">i</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">o</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">p</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin:0 8px 3px">
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">a</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">s</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">d</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">f</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">g</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">h</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">j</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">k</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">l</div>
+        </div>
+        <div style="display:flex;gap:3px">
+          <div style="background:var(--bg4);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 6px;font-size:10px;color:var(--t2);flex:1.3">⇧</div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;flex:7">
+            <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">z</div>
+            <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">x</div>
+            <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">c</div>
+            <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">v</div>
+            <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">b</div>
+            <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">n</div>
+            <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 2px;font-size:11px;color:var(--t0)">m</div>
+          </div>
+          <div style="background:var(--bg4);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px 6px;font-size:10px;color:var(--t2);flex:1.3">⌫</div>
+        </div>
+        <div style="display:flex;gap:3px;margin-top:3px">
+          <div style="background:var(--bg4);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px;font-size:10px;color:var(--t2);flex:1.2">123</div>
+          <div style="background:var(--bg4);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px;font-size:10px;color:var(--t2);flex:1">🌐</div>
+          <div style="background:var(--bg3);border:.5px solid var(--bd2);border-radius:5px;text-align:center;padding:8px;font-size:12px;color:var(--t1);flex:5">空格</div>
+          <div style="background:var(--gold);border-radius:5px;text-align:center;padding:8px 10px;font-size:10px;color:var(--bg0);font-weight:700;flex:1.5;cursor:pointer" onclick="show('addholding')">搜索</div>
+        </div>
+      </div>
+
+    </div>
+  </div></div>
+</div>
+
+<!-- S7 Holdings List -->
+<div id="s-holdings" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S7 · ACTIVATION</div>
+    <div class="screen-title">持仓列表</div>
+    <div class="screen-sub">全量持仓 · 收益总览 · 快速编辑</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+      <div style="padding:10px 14px 7px;border-bottom:.5px solid var(--bd);display:flex;align-items:flex-end;justify-content:space-between">
+        <div><div style="font-size:15px;font-weight:500;color:var(--t0)">我的持仓</div><div style="font-size:9px;color:var(--t2)">共3只 · A股</div></div>
+        <div onclick="show('addholding')" style="font-size:10px;color:var(--gold);cursor:pointer">＋ 添加</div>
+      </div>
+      <!-- Summary bar -->
+      <div style="background:linear-gradient(150deg,#1a1c14,#0e0f0b);border:.5px solid rgba(200,168,75,.14);border-radius:14px;margin:8px 10px;padding:12px">
+        <div style="font-size:9px;color:var(--t2);margin-bottom:3px">预测年度分红（税前）</div>
+        <div style="font-size:26px;font-weight:700;color:var(--gold2);letter-spacing:-.5px">¥8,840</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-top:.5px solid var(--bd);padding-top:7px;margin-top:8px">
+          <div><div style="font-size:8px;color:var(--t3)">总成本</div><div style="font-size:11px;font-weight:500;color:var(--t0);margin-top:1px">¥21万</div></div>
+          <div><div style="font-size:8px;color:var(--t3)">综合息率</div><div style="font-size:11px;font-weight:500;color:var(--green);margin-top:1px">4.21%</div></div>
+          <div><div style="font-size:8px;color:var(--t3)">已覆盖</div><div style="font-size:11px;font-weight:500;color:var(--t0);margin-top:1px">44.2%</div></div>
+        </div>
+      </div>
+      <div class="st">持仓明细</div>
+      <div style="font-size:9px;color:var(--t3);padding:0 12px 5px;display:flex;align-items:center;gap:4px">
+        <span style="background:var(--bg3);border:.5px solid var(--bd2);border-radius:4px;padding:1px 6px;font-size:8px;color:var(--t3)">← 左滑</span>
+        <span style="color:var(--t3)">可编辑或删除持仓</span>
+      </div>
+      <div class="card" style="padding:0;background:var(--bg2);border:.5px solid var(--bd2);margin-top:0">
+        <!-- First item: shown in "swiped" reveal state to demonstrate edit/delete -->
+        <div style="position:relative;overflow:hidden;border-bottom:.5px solid var(--bd)">
+          <!-- Swipe action buttons revealed behind -->
+          <div style="position:absolute;right:0;top:0;bottom:0;display:flex;align-items:stretch">
+            <div onclick="show('editholding')" style="background:rgba(200,168,75,.18);border-left:.5px solid rgba(200,168,75,.3);padding:0 14px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:2px">
+              <span style="font-size:13px">✏</span>
+              <span style="font-size:8px;color:var(--gold);font-weight:500">编辑</span>
+            </div>
+            <div onclick="show('deleteholding')" style="background:rgba(231,76,60,.16);border-left:.5px solid rgba(231,76,60,.25);padding:0 14px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:2px;border-radius:0 0 0 0">
+              <span style="font-size:13px">🗑</span>
+              <span style="font-size:8px;color:#e74c3c;font-weight:500">删除</span>
+            </div>
+          </div>
+          <!-- Row content shifted left to reveal actions -->
+          <div class="hi" style="border-bottom:none;transform:translateX(-96px);transition:transform .2s">
+            <div class="hico">中</div>
+            <div style="flex:1"><div class="hn">中国平安<span class="mt">A</span></div><div class="hm">1000股 · 成本¥60.00</div></div>
+            <div class="hr"><div class="hv">¥2,477/年</div><div class="hrr">▲ 4.13%</div></div>
+          </div>
+        </div>
+        <!-- Callout annotation -->
+        <div style="background:rgba(200,168,75,.04);border-bottom:.5px solid var(--bd);padding:5px 12px;display:flex;align-items:center;gap:6px">
+          <span style="font-size:8px;color:var(--gold)">↑ 左滑显示编辑/删除操作</span>
+          <span style="margin-left:auto;font-size:8px;color:var(--t3);cursor:pointer" onclick="show('editholding')">→ 查看编辑页</span>
+        </div>
+        <div class="hi">
+          <div class="hico">神</div>
+          <div style="flex:1"><div class="hn">中国神华<span class="mt">A</span></div><div class="hm">800股 · 成本¥38.50</div></div>
+          <div class="hr"><div class="hv">¥2,200/年</div><div class="hrr">▲ 7.14%</div></div>
+        </div>
+        <div class="hi" style="border-bottom:none">
+          <div class="hico">工</div>
+          <div style="flex:1"><div class="hn">工商银行<span class="mt">A</span></div><div class="hm">5000股 · 成本¥5.30</div></div>
+          <div class="hr"><div class="hv">¥4,163/年</div><div class="hrr">▲ 5.72%</div></div>
+        </div>
+      </div>
+      <!-- Concentration warning -->
+      <div class="card" style="background:rgba(200,168,75,.06);border:.5px solid rgba(200,168,75,.2);margin-top:0">
+        <div style="padding:10px 12px">
+          <div style="font-size:10px;font-weight:500;color:var(--gold);margin-bottom:4px">⚡ 行业集中度提示</div>
+          <div style="font-size:9px;color:var(--t2);line-height:1.6">金融板块占比 72%，建议增配能源/消费板块以降低单一行业风险</div>
+        </div>
+      </div>
+      <div style="height:12px"></div>
+    </div>
+    <div class="tb">
+      <div class="ti on"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S8 FI -->
+<div id="s-fi" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S8 · ACTIVATION</div>
+    <div class="screen-title">财务自由追踪</div>
+    <div class="screen-sub">分红覆盖生活 · 里程碑 · 加速路径</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+      <div style="padding:10px 14px 7px;border-bottom:.5px solid var(--bd)"><div style="font-size:15px;font-weight:500;color:var(--t0)">财务自由</div><div style="font-size:9px;color:var(--t2)">分红覆盖生活进度</div></div>
+      <div style="height:6px"></div>
+      <div class="fihero">
+        <div style="font-size:9px;color:var(--t2);margin-bottom:2px">月被动收入覆盖率</div>
+        <div class="fipct">12.4<span style="font-size:17px;font-weight:500">%</span></div>
+        <div class="fisub">¥2,477 / ¥20,000 月生活支出</div>
+        <div class="fibar"><div class="fifill" style="width:12.4%"></div></div>
+        <div class="fimarks"><span>0%</span><span>25%</span><span>50%</span><span>100% 自由</span></div>
+      </div>
+      <div class="st">里程碑</div>
+      <div class="card" style="padding:0;background:var(--bg2);border:.5px solid var(--bd2);margin-top:0">
+        <div class="ms"><div class="msd md">✓</div><div><div class="msn">覆盖订阅支出</div><div class="mss">话费+音乐 ¥115/月</div></div><div class="msr d">已达成</div></div>
+        <div class="ms" style="background:rgba(200,168,75,.025)"><div class="msd mp">→</div><div><div class="msn">覆盖物业水电</div><div class="mss">¥700/月 · 44%</div></div><div class="msr p">进行中</div></div>
+        <div class="ms"><div class="msd ml">○</div><div><div class="msn">覆盖餐饮支出</div><div class="mss">¥3,500/月</div></div><div class="msr l">锁定</div></div>
+        <div class="ms"><div class="msd ml">○</div><div><div class="msn">覆盖子女教育</div><div class="mss">¥3,000/月</div></div><div class="msr l">锁定</div></div>
+        <div class="ms"><div class="msd ml">○</div><div><div class="msn">房贷/房租自由</div><div class="mss">¥8,000/月 终极</div></div><div class="msr l">锁定</div></div>
+      </div>
+      <div class="st">加速路径</div>
+      <div class="card" style="background:var(--bg2);border:.5px solid var(--bd2);margin-top:0">
+        <div style="padding:10px 12px;font-size:9px;color:var(--t2);line-height:1.7">
+          再投入 <span style="color:var(--t0);font-weight:500">¥60,700</span> 买入4%息率标的，可覆盖物业+水电
+          <div style="display:flex;gap:5px;margin-top:7px">
+            <span style="font-size:8px;padding:2px 8px;border-radius:4px;background:rgba(200,168,75,.1);color:var(--gold);border:.5px solid rgba(200,168,75,.2)">红利ETF 510880</span>
+            <span style="font-size:8px;padding:2px 8px;border-radius:4px;background:rgba(200,168,75,.1);color:var(--gold);border:.5px solid rgba(200,168,75,.2)">中国神华</span>
+          </div>
+        </div>
+      </div>
+      <div style="height:12px"></div>
+    </div>
+    <div class="tb">
+      <div class="ti"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti on"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S9 Calendar -->
+<div id="s-calendar" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S9 · RETENTION</div>
+    <div class="screen-title">分红日历</div>
+    <div class="screen-sub">登记日 · 除权除息 · 派息到账提醒</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:10px 14px 7px;border-bottom:.5px solid var(--bd)">
+        <div><div style="font-size:15px;font-weight:500;color:var(--t0)">分红日历</div><div style="font-size:9px;color:var(--t2)">2026年4月</div></div>
+        <div style="font-size:14px;color:var(--t2)">‹ ›</div>
+      </div>
+      <div style="display:flex;gap:9px;padding:7px 12px 2px;font-size:8px;color:var(--t2)">
+        <span style="display:flex;align-items:center;gap:2px"><span class="dot" style="background:#378ADD"></span>登记</span>
+        <span style="display:flex;align-items:center;gap:2px"><span class="dot" style="background:var(--red)"></span>除权</span>
+        <span style="display:flex;align-items:center;gap:2px"><span class="dot" style="background:var(--green)"></span>派息</span>
+        <span style="display:flex;align-items:center;gap:2px"><span class="dot" style="background:var(--gold)"></span>到账</span>
+      </div>
+      <div class="cg">
+        <div class="cdl">日</div><div class="cdl">一</div><div class="cdl">二</div><div class="cdl">三</div><div class="cdl">四</div><div class="cdl">五</div><div class="cdl">六</div>
+        <div></div><div></div><div></div>
+        <div class="cd">1</div><div class="cd">2</div><div class="cd">3</div><div class="cd">4</div>
+        <div class="cd">5</div><div class="cd">6</div><div class="cd">7</div>
+        <div class="cd">8<div class="cdots"><span class="dot" style="background:#378ADD"></span></div></div>
+        <div class="cd">9</div><div class="cd">10</div><div class="cd">11</div><div class="cd">12</div>
+        <div class="cd td"><div class="cdi">13</div></div>
+        <div class="cd">14</div>
+        <div class="cd">15<div class="cdots"><span class="dot" style="background:var(--red)"></span></div></div>
+        <div class="cd">16<div class="cdots"><span class="dot" style="background:var(--green)"></span></div></div>
+        <div class="cd">17<div class="cdots"><span class="dot" style="background:var(--gold)"></span></div></div>
+        <div class="cd">18</div>
+        <div class="cd">19</div><div class="cd">20</div><div class="cd">21</div><div class="cd">22</div><div class="cd">23</div><div class="cd">24</div><div class="cd">25</div>
+        <div class="cd">26</div><div class="cd">27</div><div class="cd">28</div><div class="cd">29</div><div class="cd">30</div>
+      </div>
+      <div class="card" style="padding:0;background:var(--bg2);border:.5px solid var(--bd2);margin-top:2px">
+        <div style="padding:10px 12px"><div style="font-size:9px;color:var(--t2);margin-bottom:2px">4月预期到账</div><div style="font-size:20px;font-weight:700;color:var(--gold2)">¥2,228.63 <span style="font-size:9px;color:var(--t2);font-weight:400">税后</span></div></div>
+      </div>
+      <div class="st">04-15 · 事件</div>
+      <div class="evcard xr">
+        <div class="evtop"><span class="evname">中国平安 601318</span><span class="evtag txr">除权除息</span></div>
+        <div class="evamt">¥2,476.70</div>
+        <div class="evmeta">1000股 × ¥2.4767 · 税后 ¥2,228.63</div>
+      </div>
+      <div class="st">04-17 · 到账提醒</div>
+      <div class="evcard pay">
+        <div class="evtop"><span class="evname">派息到账通知</span><span class="evtag tpay">提醒已设</span></div>
+        <div class="evamt" style="color:var(--green)">¥2,228.63</div>
+        <div class="evmeta">到账时推送 · 可设置微信提醒</div>
+      </div>
+      <div style="height:12px"></div>
+    </div>
+    <div class="tb">
+      <div class="ti"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti on"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S10 Notif -->
+<div id="s-notif" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S10 · RETENTION</div>
+    <div class="screen-title">消息通知</div>
+    <div class="screen-sub">到账高情绪推送 · 减息预警 · 打卡</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+      <div style="padding:10px 14px 7px;border-bottom:.5px solid var(--bd)"><div style="font-size:15px;font-weight:500;color:var(--t0)">消息</div><div style="font-size:9px;color:var(--t2)">分红事件 · 智能预警</div></div>
+      <div style="height:6px"></div>
+      <div class="nhero">
+        <div style="font-size:9px;color:var(--t2)">09:03 · 中国平安 601318</div>
+        <div style="font-size:13px;font-weight:500;color:var(--t0);margin-top:4px">分红到账了！</div>
+        <div class="namt">+¥2,228.63</div>
+        <div style="font-size:9px;color:var(--t2)">税后实收 · 已覆盖话费 + 音乐会员</div>
+        <div class="nbr"><span class="nb">查看分红档案</span><span class="nb">DRIP 再投入</span></div>
+      </div>
+      <div style="height:6px"></div>
+      <div class="st">本周事件</div>
+      <div class="nc w"><div class="nct">⚠ 减息预警</div><div class="ncb">中国太保 601601 · 2025年分红同比下降18%，已连续2年下滑</div></div>
+      <div class="nc b" style="margin-top:4px"><div class="nct">📅 下一分红</div><div class="ncb">中国神华 601088 · 股权登记日 2026-05-08 · 预计¥1.88/股</div></div>
+      <div class="nc n" style="margin-top:4px"><div class="nct">🔥 持仓打卡 第30天</div><div class="ncb">坚持30天！你的耐心是散户平均的2倍，复利正在积累</div></div>
+      <div class="nc n" style="margin-top:4px"><div class="nct">⚡ 组合诊断</div><div class="ncb">持仓集中在金融板块，建议添加神华等能源高息股降低风险</div></div>
+      <div style="height:12px"></div>
+    </div>
+    <div class="tb">
+      <div class="ti"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti on"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S11 Streak -->
+<div id="s-streak" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S11 · RETENTION</div>
+    <div class="screen-title">成就打卡</div>
+    <div class="screen-sub">持股热力图 · 成就徽章 · 分享海报</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+      <div style="padding:10px 14px 7px;border-bottom:.5px solid var(--bd)"><div style="font-size:15px;font-weight:500;color:var(--t0)">攒股之路</div><div style="font-size:9px;color:var(--t2)">每一天，离财务自由更近一步</div></div>
+      <div class="st">持股打卡</div>
+      <div class="streak">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--gdim),var(--gold));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px">🔥</div>
+          <div><div class="snum">15 天</div><div class="ssub">比90%用户更有耐心</div></div>
+        </div>
+        <div class="hmap">
+          <div class="hc hon"></div><div class="hc hon"></div><div class="hc hon"></div><div class="hc hon"></div><div class="hc hon"></div><div class="hc hon"></div><div class="hc hon"></div>
+          <div class="hc hon"></div><div class="hc hon"></div><div class="hc hon"></div><div class="hc hon"></div><div class="hc hon"></div><div class="hc hdim"></div><div class="hc hoff"></div>
+        </div>
+        <div style="font-size:8px;color:var(--t3);margin-top:5px">过去14天持仓记录</div>
+      </div>
+      <div class="st">成就徽章</div>
+      <div class="badges">
+        <div class="bi"><div class="bic earn">🌱</div><div class="bl">第一笔分红</div></div>
+        <div class="bi"><div class="bic earn">☕</div><div class="bl">咖啡自由</div></div>
+        <div class="bi"><div class="bic bloc">📱</div><div class="bl">话费自由</div></div>
+        <div class="bi"><div class="bic bloc">🏠</div><div class="bl">物业自由</div></div>
+      </div>
+      <div style="margin:10px;border:.5px dashed var(--bd2);border-radius:12px;padding:11px;display:flex;align-items:center;gap:9px">
+        <div style="font-size:20px">🎉</div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:500;color:var(--t0)">分享收息日记</div><div style="font-size:9px;color:var(--t2)">生成专属海报晒出被动收入</div></div>
+        <div style="font-size:9px;background:var(--gdim);color:var(--bg0);padding:5px 10px;border-radius:6px;font-weight:500">生成</div>
+      </div>
+      <div class="st">今日分红覆盖</div>
+      <div class="card" style="background:var(--bg2);border:.5px solid var(--bd2);margin-top:0">
+        <div style="padding:10px 12px">
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <div style="background:var(--bg1);border:.5px solid var(--gold);border-radius:8px;padding:7px 9px;text-align:center;font-size:9px;color:var(--gold)">🎵 音乐会员<br><span style="font-size:8px;color:var(--t2)">¥15/月</span></div>
+            <div style="background:var(--bg1);border:.5px solid var(--gold);border-radius:8px;padding:7px 9px;text-align:center;font-size:9px;color:var(--gold)">📱 话费<br><span style="font-size:8px;color:var(--t2)">¥100/月</span></div>
+            <div style="background:var(--bg3);border:.5px dashed var(--bd2);border-radius:8px;padding:7px 9px;text-align:center;font-size:9px;color:var(--t3)">🏠 物业费<br><span style="font-size:8px">¥300/月</span></div>
+          </div>
+          <div style="margin-top:8px;font-size:9px;color:var(--t3)">再攒 ¥2,503 分红 → 点亮物业费</div>
+        </div>
+      </div>
+      <div style="height:12px"></div>
+    </div>
+    <div class="tb">
+      <div class="ti"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti on"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S12 Discover -->
+<div id="s-discover" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S12 · TOOLS</div>
+    <div class="screen-title">发现工具</div>
+    <div class="screen-sub">个股档案 · 高息筛选 · DRIP · 税后计算</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+      <div style="padding:10px 14px 7px;border-bottom:.5px solid var(--bd)"><div style="font-size:15px;font-weight:500;color:var(--t0)">发现</div><div style="font-size:9px;color:var(--t2)">分红分析工具集</div></div>
+      <div style="height:6px"></div>
+      <div class="tg">
+        <div class="tc feat" onclick="show('stockprofile')" style="cursor:pointer"><div class="tci">📊</div><div class="tcn">个股档案</div><div class="tcd">历史分红 + 未来预测</div><div class="tcb bfree">免费</div></div>
+        <div class="tc"><div class="tci">🏆</div><div class="tcn">高息排行</div><div class="tcd">息率 Top 100</div><div class="tcb bpro">会员</div></div>
+        <div class="tc" onclick="show('dripcalc')" style="cursor:pointer"><div class="tci">♻️</div><div class="tcn">DRIP 模拟</div><div class="tcd">再投资复利测算</div><div class="tcb bfree">免费</div></div>
+        <div class="tc"><div class="tci">⚖️</div><div class="tcn">多股对比</div><div class="tcd">最多5只横向对比</div><div class="tcb bpro">会员</div></div>
+        <div class="tc feat" onclick="show('taxcalc')" style="cursor:pointer"><div class="tci">🧮</div><div class="tcn">税后计算</div><div class="tcd">A/H持有期税率</div><div class="tcb bfree">免费</div></div>
+        <div class="tc"><div class="tci">📈</div><div class="tcn">增速分析</div><div class="tcd">历史增速+连续年数</div><div class="tcb bpro">会员</div></div>
+      </div>
+      <div class="st" style="margin-top:4px">高息快筛</div>
+      <div style="display:flex;gap:5px;padding:0 10px 6px;flex-wrap:wrap">
+        <span style="font-size:9px;padding:4px 10px;border-radius:20px;background:rgba(200,168,75,.12);border:.5px solid rgba(200,168,75,.3);color:var(--gold)">A股</span>
+        <span style="font-size:9px;padding:4px 10px;border-radius:20px;border:.5px solid var(--bd2);color:var(--t2)">港股</span>
+        <span style="font-size:9px;padding:4px 10px;border-radius:20px;background:rgba(200,168,75,.12);border:.5px solid rgba(200,168,75,.3);color:var(--gold)">息率 &gt;4%</span>
+        <span style="font-size:9px;padding:4px 10px;border-radius:20px;border:.5px solid var(--bd2);color:var(--t2)">连续5年+</span>
+      </div>
+      <div class="card" style="padding:0;background:var(--bg2);border:.5px solid var(--bd2);margin-top:0">
+        <div class="hi">
+          <div class="hico">神</div>
+          <div><div class="hn">中国神华</div><div class="hm">601088 · A股</div></div>
+          <div class="hr"><div style="font-size:14px;font-weight:700;color:var(--gold2)">7.2%</div><div style="font-size:8px;color:var(--t3);text-align:right">股息率</div></div>
+        </div>
+        <div class="hi">
+          <div class="hico">工</div>
+          <div><div class="hn">工商银行</div><div class="hm">601398 · A股</div></div>
+          <div class="hr"><div style="font-size:14px;font-weight:700;color:var(--gold2)">6.1%</div><div style="font-size:8px;color:var(--t3);text-align:right">股息率</div></div>
+        </div>
+        <div style="padding:8px 14px;font-size:9px;color:var(--t3);text-align:center;border-top:.5px solid var(--bd)">查看全部 100+ → 会员专属</div>
+      </div>
+      <div style="height:12px"></div>
+    </div>
+    <div class="tb">
+      <div class="ti"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti on"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S13 Settings -->
+<div id="s-settings" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S13 · TOOLS</div>
+    <div class="screen-title">设置 / 我的</div>
+    <div class="screen-sub">账户 · 数据配置 · 通知偏好</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+      <div class="shero">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:11px">
+          <div class="av" style="width:38px;height:38px;font-size:14px">Y</div>
+          <div><div style="font-size:14px;font-weight:500;color:var(--t0)">收息老手</div><div style="font-size:9px;color:var(--t2)">免费版 · 持仓上限5只</div></div>
+          <div class="probadge" style="cursor:pointer">升级 PRO</div>
+        </div>
+        <div class="sstats">
+          <div class="ss"><div class="ssv">15天</div><div class="ssk">持股天数</div></div>
+          <div class="ss"><div class="ssv">2项</div><div class="ssk">已覆盖</div></div>
+          <div class="ss"><div class="ssv gr">12.4%</div><div class="ssk">自由进度</div></div>
+        </div>
+      </div>
+      <div class="card" style="padding:0;background:var(--bg2);border:.5px solid var(--bd2)">
+        <div class="si"><span class="sil">货币与汇率</span><span class="sir">人民币 CNY ›</span></div>
+        <div class="si"><span class="sil">生活支出设置</span><span class="sir">¥20,000/月 ›</span></div>
+        <div class="si"><span class="sil">到账通知</span><span class="sir ac">已开启 ›</span></div>
+        <div class="si"><span class="sil">减息预警灵敏度</span><span class="sir">下降10% ›</span></div>
+        <div class="si"><span class="sil">财务自由目标</span><span class="sir">¥20,000/月 ›</span></div>
+        <div class="si"><span class="sil">数据口径说明</span><span class="sir">›</span></div>
+        <div class="si"><span class="sil">联系我们</span><span class="sir">›</span></div>
+      </div>
+      <div onclick="show('splash')" style="margin:14px;text-align:center;font-size:12px;color:var(--red);cursor:pointer">退出登录</div>
+      <div style="text-align:center;font-size:9px;color:var(--t3)">DiviFlow v1.0.0 · 息流 · 分红投资者工具</div>
+    </div>
+    <div class="tb">
+      <div class="ti"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti on"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- P0-1  S5e · 主看板空状态引导 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="s-homeempty" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S5e · P0补全 · ACTIVATION</div>
+    <div class="screen-title">空状态引导</div>
+    <div class="screen-sub">S5 主看板子状态 · 零持仓时触发 · 已移除高息推荐模块</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+      <div class="greet">
+        <div class="av">Y</div>
+        <div><div class="gn">你好，收息人</div><div class="gs">开始追踪你的第一笔分红</div></div>
+        <div class="probadge">PRO</div>
+      </div>
+
+      <!-- Empty state hero -->
+      <div style="margin:8px 10px;background:linear-gradient(150deg,#1a1c14,#0e0f0b);border:.5px solid rgba(200,168,75,.15);border-radius:14px;padding:32px 20px;display:flex;flex-direction:column;align-items:center;text-align:center">
+        <div style="width:64px;height:64px;background:rgba(200,168,75,.1);border:1px dashed rgba(200,168,75,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:16px">💰</div>
+        <div style="font-size:15px;font-weight:500;color:var(--t0);margin-bottom:8px">还没有持仓记录</div>
+        <div style="font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:20px">添加你的第一只高息股<br>开始计算你的被动收入</div>
+        <!-- CTA button -->
+        <div onclick="show('addholding')" style="background:linear-gradient(135deg,#8a7235,#e8c96a);color:#0a0a08;font-size:13px;font-weight:700;padding:13px 32px;border-radius:12px;cursor:pointer;width:100%">+ 添加第一笔持仓</div>
+        <div style="margin-top:12px;font-size:10px;color:var(--t3)">或扫描券商截图自动导入</div>
+      </div>
+
+      <!-- Guided steps -->
+      <div class="st">三步开始收息之路</div>
+      <div class="card" style="padding:0;background:var(--bg2);border:.5px solid var(--bd2);margin-top:0">
+        <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:.5px solid var(--bd)">
+          <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#8a7235,#e8c96a);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0a0a08;flex-shrink:0">1</div>
+          <div><div style="font-size:12px;font-weight:500;color:var(--t0)">添加持仓</div><div style="font-size:9px;color:var(--t2)">录入股票代码、数量、成本价</div></div>
+          <div style="margin-left:auto;font-size:11px;color:var(--t3)">›</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:.5px solid var(--bd)">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--bg3);border:.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--t3);flex-shrink:0">2</div>
+          <div><div style="font-size:12px;font-weight:500;color:var(--t2)">查看预测分红</div><div style="font-size:9px;color:var(--t3)">系统自动计算年度分红预测</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:11px 14px">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--bg3);border:.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--t3);flex-shrink:0">3</div>
+          <div><div style="font-size:12px;font-weight:500;color:var(--t2)">追踪财务自由进度</div><div style="font-size:9px;color:var(--t3)">看分红覆盖生活支出的百分比</div></div>
+        </div>
+      </div>
+
+
+      <div style="height:12px"></div>
+    </div>
+    <div class="tb">
+      <div class="ti on"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- P0-2  S6c · 添加持仓成功确认 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="s-addconfirm" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S6c · P0补全 · ACTIVATION</div>
+    <div class="screen-title">添加成功确认</div>
+    <div class="screen-sub">S6 添加持仓的后续页 · 表单提交成功后跳转</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+
+      <!-- Success hero -->
+      <div style="margin:10px;background:linear-gradient(150deg,#1a1c14,#0e0f0b);border:.5px solid rgba(229,81,74,.2);border-radius:16px;padding:24px 20px;display:flex;flex-direction:column;align-items:center;text-align:center">
+        <!-- animated check circle -->
+        <div style="width:56px;height:56px;background:rgba(229,81,74,.15);border:1.5px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px">✓</div>
+        <div style="font-size:16px;font-weight:500;color:var(--t0);margin-bottom:4px">持仓添加成功！</div>
+        <div style="font-size:10px;color:var(--t2);margin-bottom:16px">中国平安 A · 1000股 已加入你的息流</div>
+
+        <!-- Updated prediction -->
+        <div style="background:rgba(200,168,75,.08);border:.5px solid rgba(200,168,75,.2);border-radius:10px;padding:12px 16px;width:100%;text-align:left">
+          <div style="font-size:9px;color:var(--t2);margin-bottom:4px">预测年度分红已更新</div>
+          <div style="display:flex;align-items:baseline;gap:6px">
+            <div style="font-size:10px;color:var(--t3);text-decoration:line-through">¥0</div>
+            <div style="font-size:8px;color:var(--t3)">→</div>
+            <div style="font-size:22px;font-weight:600;color:var(--gold2)">¥2,476</div>
+            <div style="font-size:9px;color:var(--t2)">/年</div>
+          </div>
+          <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div style="background:rgba(229,81,74,.1);border:.5px solid rgba(229,81,74,.2);border-radius:7px;padding:7px 9px">
+              <div style="font-size:8px;color:var(--t3)">成本息率</div>
+              <div style="font-size:13px;font-weight:500;color:var(--green);margin-top:1px">4.13%</div>
+            </div>
+            <div style="background:rgba(200,168,75,.08);border:.5px solid rgba(200,168,75,.2);border-radius:7px;padding:7px 9px">
+              <div style="font-size:8px;color:var(--t3)">FI进度</div>
+              <div style="font-size:13px;font-weight:500;color:var(--gold2);margin-top:1px">12.4%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coverage milestone unlocked -->
+      <div class="card" style="background:rgba(229,81,74,.06);border:.5px solid rgba(229,81,74,.2);margin-top:0">
+        <div style="padding:11px 13px">
+          <div style="font-size:10px;font-weight:500;color:var(--gold2);margin-bottom:6px">已解锁覆盖项目</div>
+          <div style="display:flex;gap:6px">
+            <div style="background:rgba(200,168,75,.08);border:.5px solid rgba(200,168,75,.2);border-radius:8px;padding:6px 10px;font-size:9px;color:var(--gold2);text-align:center">🎵 音乐会员<br><span style="font-size:8px;color:var(--t2)">¥15/月</span></div>
+            <div style="background:rgba(200,168,75,.08);border:.5px solid rgba(200,168,75,.2);border-radius:8px;padding:6px 10px;font-size:9px;color:var(--gold2);text-align:center">📱 话费<br><span style="font-size:8px;color:var(--t2)">¥100/月</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Next up hint -->
+      <div class="card" style="background:var(--bg2);border:.5px solid var(--bd2);margin-top:0">
+        <div style="padding:10px 13px">
+          <div style="font-size:10px;font-weight:500;color:var(--t0);margin-bottom:4px">下一步建议</div>
+          <div style="font-size:10px;color:var(--t2);line-height:1.6">持仓仅1只，集中度100%。建议再添加<span style="color:var(--gold)"> 2–3只</span>不同行业高息股降低风险。</div>
+          <div style="margin-top:8px;display:flex;gap:6px">
+            <div onclick="show('addholding')" style="flex:1;background:linear-gradient(135deg,#8a7235,#e8c96a);color:#0a0a08;font-size:11px;font-weight:700;padding:10px;border-radius:10px;text-align:center;cursor:pointer">继续添加持仓</div>
+            <div onclick="show('home')" style="flex:1;background:var(--bg3);border:.5px solid var(--bd2);color:var(--t1);font-size:11px;padding:10px;border-radius:10px;text-align:center;cursor:pointer">返回主看板</div>
+          </div>
+        </div>
+      </div>
+      <div style="height:12px"></div>
+    </div>
+    <div class="tb">
+      <div class="ti on"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- P0-3  S13a · 编辑持仓 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="s-editholding" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S13a · P0补全 · ACTIVATION</div>
+    <div class="screen-title">编辑持仓</div>
+    <div class="screen-sub">S7 持仓列表 → 右滑/长按 → 编辑 · 修改股数、均价、日期</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+
+      <!-- Header bar with stock info -->
+      <div style="background:linear-gradient(150deg,#1a1c14,#0e0f0b);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:.5px solid var(--bd)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#2a2510,#1a1808);border:.5px solid rgba(200,168,75,.2);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--t1)">中</div>
+          <div>
+            <div style="font-size:14px;font-weight:500;color:var(--t0)">中国平安</div>
+            <div style="font-size:9px;color:var(--t2)">601318 · A股</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;font-weight:500;color:var(--gold2)">¥2,477 /年</div>
+          <div style="font-size:9px;color:var(--green)">4.13% 息率</div>
+        </div>
+      </div>
+
+      <!-- Edit form -->
+      <div style="padding:12px 14px">
+
+        <div style="margin-bottom:11px">
+          <div style="font-size:9px;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">持仓数量（股）</div>
+          <div style="background:var(--bg2);border:.5px solid rgba(200,168,75,.4);border-radius:10px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:14px;font-weight:500;color:var(--t0)">1000</span>
+            <span style="font-size:10px;color:var(--t3)">股</span>
+          </div>
+          <div style="font-size:9px;color:var(--t3);margin-top:3px;padding-left:2px">当前市值约 ¥47,840（按昨收价）</div>
+        </div>
+
+        <div style="margin-bottom:11px">
+          <div style="font-size:9px;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">买入均价（元/股）</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:10px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:14px;font-weight:500;color:var(--t0)">60.00</span>
+            <span style="font-size:10px;color:var(--t3)">元</span>
+          </div>
+          <div style="font-size:9px;color:var(--t3);margin-top:3px;padding-left:2px">成本总额 ¥60,000</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px">
+          <div>
+            <div style="font-size:9px;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">买入日期</div>
+            <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:10px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:12px;color:var(--t0)">2026-03-28</span>
+              <span style="font-size:10px;color:var(--t3)">▾</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:9px;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">持仓账户</div>
+            <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:10px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:12px;color:var(--t0)">华泰证券</span>
+              <span style="font-size:10px;color:var(--t3)">▾</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:11px">
+          <div style="font-size:9px;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">备注（选填）</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:10px;padding:11px 13px">
+            <span style="font-size:12px;color:var(--t3)">添加备注信息…</span>
+          </div>
+        </div>
+
+        <!-- Preview of change impact -->
+        <div style="background:rgba(200,168,75,.06);border:.5px solid rgba(200,168,75,.15);border-radius:10px;padding:10px 13px;margin-bottom:14px">
+          <div style="font-size:9px;color:var(--gold);margin-bottom:5px">修改预览</div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t2);padding:3px 0">
+            <span>成本息率</span><span style="color:var(--green)">4.13%（不变）</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t2);padding:3px 0;border-top:.5px solid var(--bd)">
+            <span>预测年度分红</span><span style="color:var(--gold2)">¥2,476.70（不变）</span>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:8px">
+          <div onclick="show('holdings')" style="flex:1;background:linear-gradient(135deg,#8a7235,#e8c96a);color:#0a0a08;font-size:12px;font-weight:700;padding:12px;border-radius:11px;text-align:center;cursor:pointer">保存修改</div>
+          <div onclick="show('holdings')" style="flex:1;background:var(--bg2);border:.5px solid var(--bd2);color:var(--t1);font-size:12px;padding:12px;border-radius:11px;text-align:center;cursor:pointer">取消</div>
+        </div>
+
+        <!-- Danger zone -->
+        <div style="margin-top:14px;padding-top:14px;border-top:.5px solid var(--bd);text-align:center">
+          <div onclick="show('deleteholding')" style="font-size:11px;color:var(--red);cursor:pointer">删除这笔持仓</div>
+        </div>
+      </div>
+    </div>
+    <div class="tb">
+      <div class="ti on"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- P0-4  S13b · 删除持仓确认 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="s-deleteholding" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S13b · P0补全 · ACTIVATION</div>
+    <div class="screen-title">删除持仓确认</div>
+    <div class="screen-sub">S7 持仓列表 / S13a 编辑页 → 点击"删除" → 弹出此模态</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+
+      <!-- Blurred background: holding list -->
+      <div style="padding:10px;opacity:.35;filter:blur(1.5px);pointer-events:none">
+        <div style="background:var(--bg2);border-radius:12px;height:70px;margin-bottom:8px;display:flex;align-items:center;padding:0 14px;gap:10px">
+          <div style="width:30px;height:30px;border-radius:9px;background:#2a2510;border:.5px solid rgba(200,168,75,.18)"></div>
+          <div><div style="height:10px;background:var(--bg3);border-radius:3px;width:80px;margin-bottom:6px"></div><div style="height:8px;background:var(--bg4);border-radius:3px;width:60px"></div></div>
+        </div>
+      </div>
+
+      <!-- Modal overlay (faux viewport) -->
+      <div style="min-height:380px;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;margin:-8px 0 0;border-radius:0">
+        <div style="background:var(--bg1);border:.5px solid var(--bd2);border-radius:18px;margin:0 16px;width:100%;overflow:hidden">
+
+          <!-- Warning header -->
+          <div style="background:rgba(231,76,60,.08);border-bottom:.5px solid rgba(231,76,60,.2);padding:16px;display:flex;flex-direction:column;align-items:center;text-align:center">
+            <div style="width:44px;height:44px;background:rgba(231,76,60,.15);border:.5px solid rgba(231,76,60,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px">⚠</div>
+            <div style="font-size:14px;font-weight:500;color:var(--t0);margin-bottom:4px">确认删除这笔持仓？</div>
+            <div style="font-size:10px;color:var(--t2)">此操作不可撤销</div>
+          </div>
+
+          <!-- Holdings summary being deleted -->
+          <div style="padding:14px;border-bottom:.5px solid var(--bd)">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#2a2510,#1a1808);border:.5px solid rgba(200,168,75,.18);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--t1)">中</div>
+              <div style="flex:1">
+                <div style="font-size:12px;font-weight:500;color:var(--t0)">中国平安 A</div>
+                <div style="font-size:9px;color:var(--t2)">601318 · 1000股 · 成本¥60.00</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:12px;font-weight:500;color:var(--gold2)">¥2,477/年</div>
+                <div style="font-size:9px;color:var(--t3)">预测分红</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Impact warning -->
+          <div style="padding:12px 14px;border-bottom:.5px solid var(--bd);background:rgba(231,76,60,.04)">
+            <div style="font-size:9px;color:var(--red);font-weight:500;margin-bottom:6px">删除后的影响</div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t2);padding:2px 0">
+              <span>年度分红预测</span><span style="color:var(--red)">-¥2,477 / 年</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t2);padding:2px 0">
+              <span>FI 覆盖率</span><span style="color:var(--red)">12.4% → 0%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t2);padding:2px 0">
+              <span>持仓数量</span><span style="color:var(--red)">1只 → 0只</span>
+            </div>
+          </div>
+
+          <!-- Action buttons -->
+          <div style="padding:14px;display:flex;gap:8px">
+            <div onclick="show('holdings')" style="flex:1;background:var(--bg2);border:.5px solid var(--bd2);color:var(--t0);font-size:12px;font-weight:500;padding:12px;border-radius:10px;text-align:center;cursor:pointer">取消</div>
+            <div onclick="show('homeempty')" style="flex:1;background:rgba(231,76,60,.15);border:.5px solid rgba(231,76,60,.4);color:var(--red);font-size:12px;font-weight:700;padding:12px;border-radius:10px;text-align:center;cursor:pointer">确认删除</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tb">
+      <div class="ti on"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- P0-5  S2r · 忘记密码 / 重置密码 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="s-resetpwd" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S2r · P0补全 · ACQUISITION</div>
+    <div class="screen-title">忘记密码</div>
+    <div class="screen-sub">S2 登录页 → 点击"忘记密码" → 进入此流程（步骤 1/3）</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px)">
+      <div style="background:linear-gradient(160deg,#181815,#0a0a08);height:100%;display:flex;flex-direction:column;padding:0 20px 24px">
+
+        <!-- Back nav -->
+        <div style="display:flex;align-items:center;gap:8px;padding:16px 0 20px">
+          <div style="font-size:14px;color:var(--t2)">‹</div>
+          <div onclick="show('signin')" style="font-size:13px;color:var(--t1);cursor:pointer">返回登录</div>
+        </div>
+
+        <!-- Title -->
+        <div style="margin-bottom:28px">
+          <div style="font-size:20px;font-weight:500;color:var(--t0);margin-bottom:6px">重置密码</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.6">输入注册时的手机号，我们将发送验证码</div>
+        </div>
+
+        <!-- Step indicator -->
+        <div style="display:flex;align-items:center;gap:0;margin-bottom:24px">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:22px;height:22px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#0a0a08">1</div>
+            <div style="font-size:8px;color:var(--gold)">手机号</div>
+          </div>
+          <div style="flex:1;height:.5px;background:var(--bd2);margin:0 6px;margin-bottom:14px"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:22px;height:22px;border-radius:50%;background:var(--bg3);border:.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--t3)">2</div>
+            <div style="font-size:8px;color:var(--t3)">验证码</div>
+          </div>
+          <div style="flex:1;height:.5px;background:var(--bd2);margin:0 6px;margin-bottom:14px"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:22px;height:22px;border-radius:50%;background:var(--bg3);border:.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--t3)">3</div>
+            <div style="font-size:8px;color:var(--t3)">新密码</div>
+          </div>
+        </div>
+
+        <!-- Step 1: Phone -->
+        <div style="margin-bottom:10px">
+          <div style="font-size:9px;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">手机号</div>
+          <div style="background:var(--bg2);border:.5px solid rgba(200,168,75,.4);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;color:var(--t3);border-right:.5px solid var(--bd2);padding-right:8px">+86</span>
+            <span style="font-size:13px;color:var(--t0);font-weight:500">138 8888 8888</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom:10px">
+          <div style="font-size:9px;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">验证码</div>
+          <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:12px;color:var(--t3)">输入6位验证码</span>
+            <span style="font-size:10px;color:var(--gold);cursor:pointer">发送验证码</span>
+          </div>
+          <div style="font-size:9px;color:var(--t3);margin-top:3px;padding-left:2px">未收到？60秒后可重新发送</div>
+        </div>
+
+        <div style="flex:1"></div>
+
+        <!-- CTA -->
+        <div onclick="show('signin')" style="background:linear-gradient(135deg,#8a7235,#e8c96a);color:#0a0a08;font-size:13px;font-weight:700;padding:14px;border-radius:12px;text-align:center;cursor:pointer;margin-bottom:10px">提交验证码 →</div>
+
+        <div style="text-align:center;font-size:10px;color:var(--t3)">验证码有效期 10 分钟</div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+
+
+<!-- S12a Stock Profile -->
+<div id="s-stockprofile" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S12a · P1 · TOOLS</div>
+    <div class="screen-title">个股分红档案</div>
+    <div class="screen-sub">S12 发现 → 个股档案 → 历史分红走势 + 持续性评分</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+
+      <!-- Header with back -->
+      <div style="padding:10px 14px 8px;border-bottom:.5px solid var(--bd);display:flex;align-items:center;gap:10px">
+        <div onclick="show('discover')" style="font-size:14px;color:var(--t2);cursor:pointer">‹</div>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:500;color:var(--t0)">中国平安</div>
+          <div style="font-size:9px;color:var(--t2)">601318 · 沪市主板 · A股</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:16px;font-weight:500;color:var(--t0)">47.84</div>
+          <div style="font-size:9px;color:var(--green)">▲ +0.42%</div>
+        </div>
+      </div>
+
+      <!-- Dividend yield hero -->
+      <div style="background:linear-gradient(150deg,#1e1c14,#141210);border:.5px solid rgba(200,168,75,.2);border-radius:14px;margin:8px 10px;padding:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin-bottom:12px">
+          <div style="text-align:center">
+            <div style="font-size:9px;color:var(--t3);margin-bottom:2px">当前股息率</div>
+            <div style="font-size:22px;font-weight:600;color:var(--gold2)">4.13%</div>
+          </div>
+          <div style="text-align:center;border-left:.5px solid var(--bd);border-right:.5px solid var(--bd)">
+            <div style="font-size:9px;color:var(--t3);margin-bottom:2px">5年平均</div>
+            <div style="font-size:22px;font-weight:600;color:var(--t0)">3.87%</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:9px;color:var(--t3);margin-bottom:2px">连续派息</div>
+            <div style="font-size:22px;font-weight:600;color:var(--green)">12年</div>
+          </div>
+        </div>
+        <!-- Sustainability score -->
+        <div style="background:rgba(200,168,75,.08);border:.5px solid rgba(200,168,75,.2);border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:10px">
+          <div>
+            <div style="font-size:9px;color:var(--t2);margin-bottom:2px">分红可持续性评分</div>
+            <div style="display:flex;align-items:baseline;gap:4px">
+              <div style="font-size:20px;font-weight:600;color:var(--gold2)">82</div>
+              <div style="font-size:10px;color:var(--t2)">/ 100</div>
+            </div>
+          </div>
+          <div style="flex:1">
+            <div style="height:5px;background:var(--bg4);border-radius:3px;overflow:hidden">
+              <div style="width:82%;height:100%;background:linear-gradient(90deg,var(--pos),var(--gold2));border-radius:3px"></div>
+            </div>
+            <div style="font-size:9px;color:var(--t2);margin-top:3px">派息率 43% · 盈利覆盖充足</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historical bar chart -->
+      <div style="margin:0 10px;background:var(--bg2);border:.5px solid var(--bd2);border-radius:12px;padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:500;color:var(--t0)">历年每股分红（元）</div>
+          <div style="font-size:9px;color:var(--t3)">近8年</div>
+        </div>
+        <svg width="100%" height="80" viewBox="0 0 220 80" preserveAspectRatio="none">
+          <!-- bars -->
+          <rect x="4"   y="58" width="18" height="22" rx="3" fill="#8a7235" opacity=".6"/>
+          <rect x="30"  y="52" width="18" height="28" rx="3" fill="#8a7235" opacity=".7"/>
+          <rect x="56"  y="46" width="18" height="34" rx="3" fill="#c8a84b" opacity=".8"/>
+          <rect x="82"  y="40" width="18" height="40" rx="3" fill="#c8a84b" opacity=".85"/>
+          <rect x="108" y="36" width="18" height="44" rx="3" fill="#c8a84b"/>
+          <rect x="134" y="30" width="18" height="50" rx="3" fill="#c8a84b"/>
+          <rect x="160" y="26" width="18" height="54" rx="3" fill="#e8c96a"/>
+          <rect x="186" y="22" width="18" height="58" rx="3" fill="#e8c96a"/>
+          <!-- year labels -->
+          <text x="13"  y="78" font-size="7" fill="#5a5448" text-anchor="middle">19</text>
+          <text x="39"  y="78" font-size="7" fill="#5a5448" text-anchor="middle">20</text>
+          <text x="65"  y="78" font-size="7" fill="#5a5448" text-anchor="middle">21</text>
+          <text x="91"  y="78" font-size="7" fill="#5a5448" text-anchor="middle">22</text>
+          <text x="117" y="78" font-size="7" fill="#5a5448" text-anchor="middle">23</text>
+          <text x="143" y="78" font-size="7" fill="#5a5448" text-anchor="middle">24</text>
+          <text x="169" y="78" font-size="7" fill="#8a8070" text-anchor="middle">25</text>
+          <text x="195" y="78" font-size="7" fill="#c8a84b" text-anchor="middle">26E</text>
+          <!-- values on top -->
+          <text x="13"  y="55" font-size="7" fill="#8a8070" text-anchor="middle">1.50</text>
+          <text x="39"  y="49" font-size="7" fill="#8a8070" text-anchor="middle">1.75</text>
+          <text x="65"  y="43" font-size="7" fill="#8a8070" text-anchor="middle">2.04</text>
+          <text x="91"  y="37" font-size="7" fill="#8a8070" text-anchor="middle">2.20</text>
+          <text x="117" y="33" font-size="7" fill="#8a8070" text-anchor="middle">2.30</text>
+          <text x="143" y="27" font-size="7" fill="#8a8070" text-anchor="middle">2.38</text>
+          <text x="169" y="23" font-size="7" fill="#c8bfa0" text-anchor="middle">2.43</text>
+          <text x="195" y="19" font-size="7" fill="#c8a84b" text-anchor="middle">2.48E</text>
+        </svg>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;font-size:9px;color:var(--t3)">
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:var(--gold-dim);opacity:.7;display:inline-block"></span>历史实际</span>
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:var(--gold2);display:inline-block"></span>预测（E）</span>
+          <span style="margin-left:auto;color:var(--green)">5年复合增速 +9.8%</span>
+        </div>
+      </div>
+
+      <!-- Key metrics -->
+      <div style="margin:6px 10px;background:var(--bg2);border:.5px solid var(--bd2);border-radius:12px;padding:0">
+        <div style="display:flex;justify-content:space-between;padding:9px 13px;border-bottom:.5px solid var(--bd)">
+          <span style="font-size:11px;color:var(--t2)">派息率（Payout ratio）</span>
+          <span style="font-size:11px;font-weight:500;color:var(--gold2)">43% · 健康</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:9px 13px;border-bottom:.5px solid var(--bd)">
+          <span style="font-size:11px;color:var(--t2)">股息增速（近5年）</span>
+          <span style="font-size:11px;font-weight:500;color:var(--green)">+9.8% CAGR</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:9px 13px;border-bottom:.5px solid var(--bd)">
+          <span style="font-size:11px;color:var(--t2)">最近除权日</span>
+          <span style="font-size:11px;font-weight:500;color:var(--t0)">2026-04-15</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:9px 13px">
+          <span style="font-size:11px;color:var(--t2)">每股分红（最新）</span>
+          <span style="font-size:11px;font-weight:500;color:var(--gold2)">¥2.4767</span>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="padding:10px 10px 12px">
+        <div onclick="show('addholding')" style="background:linear-gradient(135deg,#8a7235,#e8c96a);color:var(--bg0);font-size:12px;font-weight:700;padding:12px;border-radius:11px;text-align:center;cursor:pointer">+ 加入我的持仓</div>
+      </div>
+    </div>
+    <div class="tb">
+      <div class="ti"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti on"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S12b DRIP Calculator -->
+<div id="s-dripcalc" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S12b · P1 · TOOLS</div>
+    <div class="screen-title">DRIP 再投资模拟器</div>
+    <div class="screen-sub">S12 发现 → DRIP 模拟 → 参数可调 + 复利图表</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+
+      <div style="padding:10px 14px 8px;border-bottom:.5px solid var(--bd);display:flex;align-items:center;gap:10px">
+        <div onclick="show('discover')" style="font-size:14px;color:var(--t2);cursor:pointer">‹</div>
+        <div style="font-size:15px;font-weight:500;color:var(--t0)">DRIP 再投资模拟</div>
+      </div>
+
+      <!-- Params card -->
+      <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:14px;margin:8px 10px;padding:13px">
+        <div style="font-size:10px;font-weight:500;color:var(--t0);margin-bottom:10px">模拟参数</div>
+
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span style="font-size:10px;color:var(--t2)">初始投入</span>
+            <span style="font-size:11px;font-weight:500;color:var(--gold2)">¥ 60,000</span>
+          </div>
+          <input type="range" min="10000" max="500000" step="5000" value="60000" style="width:100%;accent-color:#c8a84b">
+        </div>
+
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span style="font-size:10px;color:var(--t2)">年股息率</span>
+            <span style="font-size:11px;font-weight:500;color:var(--gold2)">4.13 %</span>
+          </div>
+          <input type="range" min="1" max="12" step="0.1" value="4.13" style="width:100%;accent-color:#c8a84b">
+        </div>
+
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span style="font-size:10px;color:var(--t2)">股息年增速</span>
+            <span style="font-size:11px;font-weight:500;color:var(--gold2)">+ 3.0 %</span>
+          </div>
+          <input type="range" min="0" max="15" step="0.5" value="3" style="width:100%;accent-color:#c8a84b">
+        </div>
+
+        <div style="margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span style="font-size:10px;color:var(--t2)">持有年限</span>
+            <span style="font-size:11px;font-weight:500;color:var(--gold2)">10 年</span>
+          </div>
+          <input type="range" min="1" max="30" step="1" value="10" style="width:100%;accent-color:#c8a84b">
+        </div>
+
+        <!-- DRIP toggle -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:.5px solid var(--bd)">
+          <span style="font-size:10px;color:var(--t2)">开启 DRIP（分红再投资）</span>
+          <div style="width:36px;height:20px;background:var(--gold2);border-radius:10px;position:relative;cursor:pointer">
+            <div style="position:absolute;right:2px;top:2px;width:16px;height:16px;background:var(--bg0);border-radius:50%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result summary -->
+      <div style="background:linear-gradient(150deg,#1e1c14,#141210);border:.5px solid rgba(200,168,75,.2);border-radius:14px;margin:0 10px;padding:13px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div style="background:rgba(200,168,75,.08);border-radius:9px;padding:10px">
+            <div style="font-size:9px;color:var(--t3);margin-bottom:3px">开启 DRIP · 10年累计</div>
+            <div style="font-size:20px;font-weight:600;color:var(--gold2)">¥32,847</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:9px;padding:10px">
+            <div style="font-size:9px;color:var(--t3);margin-bottom:3px">不再投资 · 10年累计</div>
+            <div style="font-size:20px;font-weight:600;color:var(--t1)">¥24,523</div>
+          </div>
+        </div>
+        <div style="background:rgba(229,81,74,.08);border:.5px solid rgba(229,81,74,.2);border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:10px;color:var(--t2)">DRIP 复利增益</span>
+          <span style="font-size:16px;font-weight:600;color:var(--green)" style="color:var(--gold2)">+ ¥8,324</span>
+        </div>
+      </div>
+
+      <!-- Bar chart -->
+      <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:12px;margin:6px 10px;padding:12px">
+        <div style="font-size:10px;font-weight:500;color:var(--t0);margin-bottom:8px">年度分红对比</div>
+        <svg width="100%" height="72" viewBox="0 0 220 72">
+          <rect x="4"   y="54" width="10" height="16" rx="2" fill="#8a7235" opacity=".45"/>
+          <rect x="16"  y="50" width="10" height="20" rx="2" fill="#c8a84b"/>
+          <rect x="34"  y="48" width="10" height="22" rx="2" fill="#8a7235" opacity=".45"/>
+          <rect x="46"  y="42" width="10" height="28" rx="2" fill="#c8a84b"/>
+          <rect x="64"  y="44" width="10" height="26" rx="2" fill="#8a7235" opacity=".45"/>
+          <rect x="76"  y="34" width="10" height="36" rx="2" fill="#c8a84b"/>
+          <rect x="94"  y="40" width="10" height="30" rx="2" fill="#8a7235" opacity=".45"/>
+          <rect x="106" y="26" width="10" height="44" rx="2" fill="#c8a84b"/>
+          <rect x="124" y="36" width="10" height="34" rx="2" fill="#8a7235" opacity=".45"/>
+          <rect x="136" y="14" width="10" height="56" rx="2" fill="#e8c96a"/>
+          <text x="10"  y="70" font-size="7" fill="#5a5448" text-anchor="middle">Y1</text>
+          <text x="40"  y="70" font-size="7" fill="#5a5448" text-anchor="middle">Y3</text>
+          <text x="70"  y="70" font-size="7" fill="#5a5448" text-anchor="middle">Y5</text>
+          <text x="100" y="70" font-size="7" fill="#5a5448" text-anchor="middle">Y7</text>
+          <text x="130" y="70" font-size="7" fill="#5a5448" text-anchor="middle">Y10</text>
+        </svg>
+        <div style="display:flex;gap:12px;margin-top:3px;font-size:9px;color:var(--t3)">
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#8a7235;opacity:.6;display:inline-block"></span>不再投资</span>
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#c8a84b;display:inline-block"></span>开启 DRIP</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="tb">
+      <div class="ti"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti on"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S12c Tax Calculator -->
+<div id="s-taxcalc" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S12c · P1 · TOOLS</div>
+    <div class="screen-title">税后实收计算器</div>
+    <div class="screen-sub">S12 发现 → 税后计算 → A/H股持有期税率精算</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+
+      <div style="padding:10px 14px 8px;border-bottom:.5px solid var(--bd);display:flex;align-items:center;gap:10px">
+        <div onclick="show('discover')" style="font-size:14px;color:var(--t2);cursor:pointer">‹</div>
+        <div style="font-size:15px;font-weight:500;color:var(--t0)">税后实收计算器</div>
+      </div>
+
+      <!-- Market switch -->
+      <div style="display:flex;gap:6px;padding:10px 12px 6px">
+        <div style="background:linear-gradient(135deg,#8a7235,#e8c96a);color:var(--bg0);font-size:11px;font-weight:700;padding:6px 18px;border-radius:8px;cursor:pointer">A股</div>
+        <div style="background:var(--bg3);border:.5px solid var(--bd2);color:var(--t2);font-size:11px;padding:6px 18px;border-radius:8px;cursor:pointer">港股通</div>
+      </div>
+
+      <!-- Input fields -->
+      <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:14px;margin:4px 10px;padding:12px">
+        <div style="font-size:10px;font-weight:500;color:var(--t0);margin-bottom:10px">计算参数</div>
+
+        <div style="margin-bottom:9px">
+          <div style="font-size:9px;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">每股税前分红（元）</div>
+          <div style="background:var(--bg3);border:.5px solid rgba(200,168,75,.35);border-radius:9px;padding:10px 13px;display:flex;justify-content:space-between">
+            <span style="font-size:14px;font-weight:500;color:var(--t0)">2.4767</span>
+            <span style="font-size:11px;color:var(--t3)">元/股</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom:9px">
+          <div style="font-size:9px;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">持仓数量（股）</div>
+          <div style="background:var(--bg3);border:.5px solid var(--bd2);border-radius:9px;padding:10px 13px;display:flex;justify-content:space-between">
+            <span style="font-size:14px;font-weight:500;color:var(--t0)">1,000</span>
+            <span style="font-size:11px;color:var(--t3)">股</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom:4px">
+          <div style="font-size:9px;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">持有时间</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+            <div style="background:var(--bg3);border:.5px solid var(--bd2);border-radius:8px;padding:7px;text-align:center;cursor:pointer">
+              <div style="font-size:9px;color:var(--t2)">不足1月</div>
+              <div style="font-size:10px;color:var(--red);font-weight:500;margin-top:2px">税率 20%</div>
+            </div>
+            <div style="background:var(--bg3);border:.5px solid var(--bd2);border-radius:8px;padding:7px;text-align:center;cursor:pointer">
+              <div style="font-size:9px;color:var(--t2)">1月—1年</div>
+              <div style="font-size:10px;color:var(--gold);font-weight:500;margin-top:2px">税率 10%</div>
+            </div>
+            <div style="background:rgba(229,81,74,.08);border:.5px solid rgba(229,81,74,.3);border-radius:8px;padding:7px;text-align:center;cursor:pointer">
+              <div style="font-size:9px;color:var(--green)">超过1年 ✓</div>
+              <div style="font-size:10px;color:var(--green);font-weight:700;margin-top:2px">税率 5%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result breakdown -->
+      <div style="background:linear-gradient(150deg,#1e1c14,#141210);border:.5px solid rgba(200,168,75,.18);border-radius:14px;margin:6px 10px;padding:13px">
+        <div style="font-size:10px;font-weight:500;color:var(--t0);margin-bottom:10px">税后实收明细</div>
+
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:.5px solid var(--bd)">
+          <span style="font-size:11px;color:var(--t2)">税前分红合计</span>
+          <span style="font-size:12px;font-weight:500;color:var(--t0)">¥ 2,476.70</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:.5px solid var(--bd)">
+          <span style="font-size:11px;color:var(--t2)">持有期税率</span>
+          <span style="font-size:12px;font-weight:500;color:var(--green)">5%（超过1年）</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:.5px solid var(--bd)">
+          <span style="font-size:11px;color:var(--t2)">代扣个税</span>
+          <span style="font-size:12px;font-weight:500;color:var(--neg)">− ¥ 123.84</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0 2px">
+          <span style="font-size:12px;font-weight:500;color:var(--t0)">税后实收</span>
+          <span style="font-size:20px;font-weight:600;color:var(--gold2)">¥ 2,352.86</span>
+        </div>
+      </div>
+
+      <!-- Comparison tip -->
+      <div style="background:rgba(200,168,75,.05);border:.5px solid rgba(200,168,75,.15);border-radius:10px;margin:6px 10px;padding:10px 13px">
+        <div style="font-size:9px;color:var(--gold);font-weight:500;margin-bottom:4px">持有策略建议</div>
+        <div style="font-size:10px;color:var(--t2);line-height:1.6">持有超过1年可享受5%低税率，比持有不足1月少扣 <span style="color:var(--green);font-weight:500">¥372.9</span> 个税，相当于额外获得 <span style="color:var(--green);font-weight:500">15%</span> 收益提升。</div>
+      </div>
+
+    </div>
+    <div class="tb">
+      <div class="ti"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti on"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S10p Notification Permission -->
+<div id="s-notifperm" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S10p · P1 · RETENTION</div>
+    <div class="screen-title">通知权限申请</div>
+    <div class="screen-sub">首次进入消息页 → 检测权限未开启 → 弹出引导</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+
+      <!-- Blurred notif page behind -->
+      <div style="padding:10px 14px;opacity:.3;filter:blur(1.5px);pointer-events:none">
+        <div style="font-size:15px;font-weight:500;color:var(--t0);margin-bottom:4px">消息</div>
+        <div style="background:var(--bg2);border-radius:12px;height:80px;margin-bottom:8px"></div>
+        <div style="background:var(--bg2);border-radius:12px;height:60px;margin-bottom:8px"></div>
+        <div style="background:var(--bg2);border-radius:12px;height:60px"></div>
+      </div>
+
+      <!-- Modal overlay -->
+      <div style="min-height:340px;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;margin:-8px 0 0">
+        <div style="background:var(--bg1);border:.5px solid var(--bd2);border-radius:20px;margin:0 20px;width:100%;overflow:hidden">
+
+          <!-- Icon + title -->
+          <div style="padding:24px 20px 16px;text-align:center;border-bottom:.5px solid var(--bd)">
+            <div style="width:56px;height:56px;background:rgba(200,168,75,.12);border:1.5px solid rgba(200,168,75,.3);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px">🔔</div>
+            <div style="font-size:16px;font-weight:500;color:var(--t0);margin-bottom:6px">开启分红到账通知</div>
+            <div style="font-size:11px;color:var(--t2);line-height:1.6">分红真正到账时，第一时间收到推送<br>绝不错过每一笔被动收入</div>
+          </div>
+
+          <!-- Benefits list -->
+          <div style="padding:14px 18px;border-bottom:.5px solid var(--bd)">
+            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+              <div style="width:22px;height:22px;background:rgba(200,168,75,.1);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gold);flex-shrink:0;margin-top:1px">✓</div>
+              <div>
+                <div style="font-size:12px;font-weight:500;color:var(--t0);margin-bottom:2px">到账即推送</div>
+                <div style="font-size:10px;color:var(--t2)">分红真正到账时发送高情绪价值通知</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+              <div style="width:22px;height:22px;background:rgba(200,168,75,.1);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gold);flex-shrink:0;margin-top:1px">✓</div>
+              <div>
+                <div style="font-size:12px;font-weight:500;color:var(--t0);margin-bottom:2px">减息预警</div>
+                <div style="font-size:10px;color:var(--t2)">持仓股分红下降时及时提醒</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div style="width:22px;height:22px;background:rgba(200,168,75,.1);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gold);flex-shrink:0;margin-top:1px">✓</div>
+              <div>
+                <div style="font-size:12px;font-weight:500;color:var(--t0);margin-bottom:2px">除权日提前提醒</div>
+                <div style="font-size:10px;color:var(--t2)">股权登记日前一天发送提醒</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div style="padding:14px 18px;display:flex;flex-direction:column;gap:8px">
+            <div onclick="show('notif')" style="background:linear-gradient(135deg,#8a7235,#e8c96a);color:var(--bg0);font-size:13px;font-weight:700;padding:13px;border-radius:11px;text-align:center;cursor:pointer">允许通知</div>
+            <div onclick="show('notif')" style="text-align:center;font-size:11px;color:var(--t3);cursor:pointer;padding:4px">暂不开启</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="tb">
+      <div class="ti"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti on"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S11u Achievement Unlocked -->
+<div id="s-achieveunlock" class="screen">
+  <div class="screen-header">
+    <div class="screen-tag">S11u · P2 · RETENTION</div>
+    <div class="screen-title">成就解锁庆祝</div>
+    <div class="screen-sub">里程碑达成时触发 · 全屏庆祝 + 分享入口</div>
+  </div>
+  <div class="phone-wrap"><div class="phone" style="height:560px">
+    <div class="sb"><span class="sbt">9:41</span><span class="sbr">5G 🔋</span></div>
+    <div class="sc" style="height:calc(560px - 32px - 54px)">
+
+      <!-- Full-screen celebration -->
+      <div style="background:linear-gradient(160deg,#1a1c14 0%,#0a0a08 50%,#141008 100%);min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;position:relative;overflow:hidden">
+
+        <!-- Confetti dots -->
+        <div style="position:absolute;top:20px;left:30px;width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.6"></div>
+        <div style="position:absolute;top:40px;right:40px;width:4px;height:4px;border-radius:50%;background:var(--green);opacity:.7"></div>
+        <div style="position:absolute;top:80px;left:60px;width:5px;height:5px;border-radius:50%;background:var(--gold2);opacity:.5"></div>
+        <div style="position:absolute;top:60px;right:70px;width:3px;height:3px;border-radius:50%;background:var(--gold);opacity:.6"></div>
+        <div style="position:absolute;top:100px;left:20px;width:4px;height:4px;border-radius:50%;background:var(--gold);opacity:.4"></div>
+
+        <!-- Badge icon -->
+        <div style="width:90px;height:90px;background:linear-gradient(135deg,#2a2510,#1a1808);border:2px solid var(--gold);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:20px;box-shadow:0 0 30px rgba(200,168,75,.2)">☕</div>
+
+        <!-- Title -->
+        <div style="font-size:11px;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;font-weight:500;margin-bottom:8px">成就解锁</div>
+        <div style="font-size:24px;font-weight:500;color:var(--t0);margin-bottom:6px">咖啡自由！</div>
+        <div style="font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:6px">你的分红已覆盖每月咖啡费用<br><span style="color:var(--gold2);font-weight:500">¥600 / 月</span></div>
+
+        <!-- Progress update -->
+        <div style="background:rgba(200,168,75,.08);border:.5px solid rgba(200,168,75,.2);border-radius:12px;padding:12px 16px;width:100%;margin-bottom:20px">
+          <div style="font-size:10px;color:var(--t2);margin-bottom:6px">财务自由进度更新</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="font-size:11px;color:var(--t3)">10.1%</div>
+            <div style="flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden">
+              <div style="width:12.4%;height:100%;background:linear-gradient(90deg,var(--gdim),var(--gold2));border-radius:2px"></div>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:var(--gold2)">12.4%</div>
+          </div>
+          <div style="font-size:9px;color:var(--green);margin-top:4px;text-align:right">+2.3% ↑</div>
+        </div>
+
+        <!-- Next milestone -->
+        <div style="background:var(--bg2);border:.5px solid var(--bd2);border-radius:11px;padding:11px 14px;width:100%;margin-bottom:20px;text-align:left">
+          <div style="font-size:9px;color:var(--t3);margin-bottom:4px">下一个里程碑</div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:18px;opacity:.5">📱</span>
+              <div>
+                <div style="font-size:12px;font-weight:500;color:var(--t0)">话费自由</div>
+                <div style="font-size:9px;color:var(--t2)">¥100/月 · 差 ¥16 分红</div>
+              </div>
+            </div>
+            <div style="font-size:10px;color:var(--gold)">继续加油 →</div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:8px;width:100%">
+          <div onclick="show('streak')" style="flex:1;background:linear-gradient(135deg,#8a7235,#e8c96a);color:var(--bg0);font-size:12px;font-weight:700;padding:12px;border-radius:11px;text-align:center;cursor:pointer">生成成就海报</div>
+          <div onclick="show('home')" style="flex:1;background:var(--bg2);border:.5px solid var(--bd2);color:var(--t1);font-size:12px;padding:12px;border-radius:11px;text-align:center;cursor:pointer">返回主看板</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="tb">
+      <div class="ti"><div class="ic">📊</div><div class="tx">持仓</div></div>
+      <div class="ti"><div class="ic">📅</div><div class="tx">日历</div></div>
+      <div class="ti"><div class="ic">⏱</div><div class="tx">自由</div></div>
+      <div class="ti"><div class="ic">✦</div><div class="tx">发现</div></div>
+      <div class="ti on"><div class="ic">👤</div><div class="tx">我的</div></div>
+    </div>
+  </div></div>
+</div>
+
+</main>
+</div>
+
+<script>
+var screens = ['splash','signin','register','ob1','ob2','ob3','home','addholding','aiscan','aiscan2','aiscan3','stocksearch','holdings','fi','calendar','notif','streak','discover','settings','homeempty','addconfirm','editholding','deleteholding','resetpwd','stockprofile','dripcalc','taxcalc','notifperm','achieveunlock'];
+
+var flowPaths = {
+  splash:        'S1 启动页',
+  signin:        'S1 启动页 → S2 登录',
+  resetpwd:      'S1 → S2 登录 → S2r 忘记密码',
+  register:      'S1 启动页 → S3 注册 → S5 主看板（S4 Onboarding 为二期）',
+  ob1:           'S3 注册 → S4a Onboarding 地区',
+  ob2:           'S4a → S4b Onboarding 资产规模',
+  ob3:           'S4b → S4c Onboarding 月支出目标',
+  homeempty:     'Onboarding → S5e 空状态引导',
+  home:          'S2 登录 → S5 主看板',
+  addholding:    'S5 主看板 → S6 添加持仓',
+  aiscan:        'S6 添加持仓 → S6a AI扫描 步骤1: 上传',
+  aiscan2:       'S6a → S6a-2 AI识别中 步骤2',
+  aiscan3:       'S6a-2 → S6a-3 识别结果确认 步骤3',
+  stocksearch:   'S6 添加持仓 → S6s 股票搜索',
+  addconfirm:    'S6 添加持仓 → S6c 添加成功确认',
+  holdings:      'S5 主看板 → S7 持仓列表',
+  editholding:   'S7 持仓列表 左滑 → S13a 编辑持仓',
+  deleteholding: 'S13a 编辑 → S13b 删除确认',
+  fi:            'S5 主看板 → S8 财务自由追踪',
+  calendar:      'Tab栏 → S9 分红日历',
+  notif:         'Tab栏 → S10 消息通知',
+  streak:        'S10 通知 → S11 成就打卡',
+  discover:      'Tab栏 → S12 发现工具',
+  settings:      'Tab栏 → S13 设置/我的'
+};
+
+function show(id) {
+  for (var i = 0; i < screens.length; i++) {
+    var s = screens[i];
+    var el = document.getElementById('s-' + s);
+    if (el) el.classList.remove('active');
+    var nav = document.getElementById('nav-' + s);
+    if (nav) nav.classList.remove('active');
+  }
+  var target = document.getElementById('s-' + id);
+  if (target) target.classList.add('active');
+  var navTarget = document.getElementById('nav-' + id);
+  if (navTarget) navTarget.classList.add('active');
+
+  var hint = document.getElementById('flow-path');
+  if (hint && flowPaths[id]) {
+    var parts = flowPaths[id].split(' → ');
+    var html = '';
+    for (var j = 0; j < parts.length; j++) {
+      if (j === parts.length - 1) {
+        html += '<span style="color:var(--gold);font-weight:500">' + parts[j] + '</span>';
+      } else {
+        html += '<span>' + parts[j] + '</span>';
+        html += '<span style="color:var(--t3);padding:0 2px">→</span>';
+      }
+    }
+    hint.innerHTML = html;
+  }
+}
+</script>
+</body>
+</html>

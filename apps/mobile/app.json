@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "DiviFlow 息流",
+    "slug": "diviflow",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a08"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.diviflow.app"
+    },
+    "android": {
+      "package": "com.diviflow.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a08"
+      }
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
