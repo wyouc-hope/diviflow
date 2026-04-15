@@ -147,8 +147,10 @@ uploads/
 *.pkl
 *.bin
 *.safetensors
-models/
-checkpoints/
+# 仅忽略根目录 / ml-models 下的大模型文件，避免误伤后端 ORM 的 app/models/
+/models/
+/ml-models/
+/checkpoints/
 
 # ─── 其他 ────────────────────────────────────────────────
 .serverless/
