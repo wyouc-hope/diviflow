@@ -3,10 +3,10 @@
 """
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from app.schemas.common import CamelBase
 
 
-class UserOut(BaseModel):
+class UserOut(CamelBase):
     """出参：用户基础信息"""
 
     id: str
@@ -19,10 +19,8 @@ class UserOut(BaseModel):
     monthly_expense_target: float
     created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
 
-
-class AuthTokens(BaseModel):
+class AuthTokens(CamelBase):
     """Token 对"""
 
     access_token: str
@@ -30,21 +28,21 @@ class AuthTokens(BaseModel):
     expires_at: int
 
 
-class LoginByPhoneIn(BaseModel):
+class LoginByPhoneIn(CamelBase):
     """入参：手机号 + 验证码登录"""
 
     phone: str
     code: str
 
 
-class LoginOut(BaseModel):
+class LoginOut(CamelBase):
     """登录响应"""
 
     user: UserOut
     tokens: AuthTokens
 
 
-class SendSmsCodeIn(BaseModel):
+class SendSmsCodeIn(CamelBase):
     """入参：发送短信验证码"""
 
     phone: str

@@ -1,15 +1,16 @@
 /**
  * Expo Router 根布局
- * - 注册全局状态 / 主题 / 状态栏
- * - 根据登录态决定初始路由（实际上 Expo Router 由 index.tsx 做重定向）
+ * - 注入 SafeAreaProvider
+ * - 全局状态栏（深色主题）
  */
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { theme } from '@theme/index';
 
 export default function RootLayout() {
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="light" />
       <Stack
         screenOptions={{
@@ -23,6 +24,6 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       </Stack>
-    </>
+    </SafeAreaProvider>
   );
 }

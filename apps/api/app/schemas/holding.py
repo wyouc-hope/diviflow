@@ -3,10 +3,12 @@
 """
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
+
+from app.schemas.common import CamelBase
 
 
-class HoldingBase(BaseModel):
+class HoldingBase(CamelBase):
     """持仓公共字段"""
 
     symbol: str = Field(..., max_length=32)
@@ -35,10 +37,8 @@ class HoldingOut(HoldingBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
 
-
-class PortfolioSummary(BaseModel):
+class PortfolioSummary(CamelBase):
     """组合概览"""
 
     base_currency: str
@@ -49,13 +49,13 @@ class PortfolioSummary(BaseModel):
     annual_dividend_estimate: float
 
 
-class ScanHoldingsIn(BaseModel):
+class ScanHoldingsIn(CamelBase):
     """AI 扫描截图入参"""
 
     image: str = Field(..., description="base64 编码的图片")
 
 
-class ScanHoldingsOut(BaseModel):
+class ScanHoldingsOut(CamelBase):
     """AI 扫描解析结果"""
 
     candidates: list[HoldingCreate]

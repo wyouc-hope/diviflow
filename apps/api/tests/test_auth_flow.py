@@ -13,4 +13,5 @@ def test_login_creates_user() -> None:
     assert resp.status_code == 200
     data = resp.json()
     assert data["user"]["phone"] == "13800000000"
-    assert data["tokens"]["access_token"]
+    assert data["tokens"]["accessToken"]
+    assert data["user"]["baseCurrency"] == "CNY"

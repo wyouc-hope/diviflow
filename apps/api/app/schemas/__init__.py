@@ -1,4 +1,5 @@
 """Pydantic schema 统一出口"""
+from app.schemas.common import Paginated
 from app.schemas.dividend import DividendEventOut, FIProgressOut
 from app.schemas.holding import (
     HoldingCreate,
@@ -19,6 +20,7 @@ __all__ = [
     "HoldingUpdate",
     "LoginByPhoneIn",
     "LoginOut",
+    "Paginated",
     "PortfolioSummary",
     "ScanHoldingsIn",
     "ScanHoldingsOut",

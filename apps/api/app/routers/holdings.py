@@ -1,9 +1,10 @@
 """
 持仓路由
 """
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 
 from app.core.deps import CurrentUserId, DbSession
+from app.schemas.common import Paginated
 from app.schemas.holding import (
     HoldingCreate,
     HoldingOut,
@@ -17,10 +18,20 @@ from app.services.holding_service import HoldingService
 router = APIRouter(prefix="/holdings", tags=["holdings"])
 
 
-@router.get("", response_model=list[HoldingOut])
-def list_holdings(user_id: CurrentUserId, db: DbSession) -> list[HoldingOut]:
-    """查询当前用户全部持仓"""
-    return [HoldingOut.model_validate(h) for h in HoldingService(db).list_for_user(user_id)]
+@router.get("", response_model=Paginated[HoldingOut])
+def list_holdings(
+    user_id: CurrentUserId,
+    db: DbSession,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=500),
+) -> Paginated[HoldingOut]:
+    """查询当前用户持仓（分页）"""
+    items_all = HoldingService(db).list_for_user(user_id)
+    start, end = (page - 1) * page_size, (page - 1) * page_size + page_size
+    page_items = [HoldingOut.model_validate(h) for h in items_all[start:end]]
+    return Paginated[HoldingOut](
+        items=page_items, page=page, page_size=page_size, total=len(items_all)
+    )
 
 
 @router.get("/summary", response_model=PortfolioSummary)

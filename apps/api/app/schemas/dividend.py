@@ -3,10 +3,10 @@
 """
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict
+from app.schemas.common import CamelBase
 
 
-class DividendEventOut(BaseModel):
+class DividendEventOut(CamelBase):
     """分红事件响应"""
 
     id: str
@@ -19,10 +19,8 @@ class DividendEventOut(BaseModel):
     ex_dividend_date: date | None = None
     pay_date: date | None = None
 
-    model_config = ConfigDict(from_attributes=True)
 
-
-class FIProgressOut(BaseModel):
+class FIProgressOut(CamelBase):
     """财务自由进度响应"""
 
     monthly_dividend_estimate: float
